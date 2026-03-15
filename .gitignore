@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+.next
+.turbo
+
+# Environment variables (NEVER commit these)
+.env
+.env.*
+!.env.example
+*.env
+
+# Private keys / secrets
+*.pem
+*.key
+*.p8
+*.p12
+serviceAccountKey.json
+
+# Source maps
+*.js.map
+
+# ChromaDB local data
+data/
+
+# Prisma
+/generated/prisma
+**/generated/prisma
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo

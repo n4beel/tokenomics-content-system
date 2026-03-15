@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Users ---
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
+}
+
+// --- System config (singleton) ---
+
+model SystemConfig {
+  id        String   @id @default("singleton")
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+// --- Batch runs ---
+
+model BatchRun {
+  id          String      @id @default(cuid())
+  type        String      // 'weekly' | 'daily-news'
+  status      String      @default("queued") // queued | running | completed | failed
+  triggeredBy String      @default("scheduler")
+  batchId     String      @unique
+  jobId       String?
+  startedAt   DateTime    @default(now())
+  completedAt DateTime?
+  error       String?
+  result      Json?       // Full pipeline result
+  posts       Post[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+  @@index([type])
+}
+
+// --- Content posts ---
+
+model Post {
+  id          String      @id @default(cuid())
+  batchRunId  String
+  batchRun    BatchRun    @relation(fields: [batchRunId], references: [id])
+
+  platform    String      // 'linkedin' | 'x' | 'youtube' | 'blog' | 'newsletter'
+  pillar      String?     // RWA, Tokenomics, News, Builder, DeFi
+  template    String?     // template name
+  topic       String
+  content     String      @db.Text
+  status      String      @default("draft") // draft | approved | scheduled | published | rejected
+
+  // QA
+  qaStatus    String?     // 'pass' | 'fail'
+  qaNotes     String?     @db.Text
+
+  // Publishing
+  publishedAt DateTime?
+  cmsId       String?     // Payload CMS post ID
+  cmsUrl      String?
+
+  // Metadata
+  slot        String?     // e.g. "monday-morning"
+  format      String?     // text | video | carousel
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([batchRunId])
+  @@index([platform])
+  @@index([status])
+  @@index([pillar])
+}
+
+// --- Voice notes ---
+
+model VoiceNote {
+  id          String   @id @default(cuid())
+  filename    String
+  mimeType    String   @default("audio/webm")
+  r2Key       String   // path in R2 bucket
+  r2Url       String   // public URL
+  duration    Int?     // seconds
+  tags        String[] // free-form tags
+  transcript  String?  @db.Text
+  usedInBatch String?  // batchRunId
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+// --- Analytics ---
+
+model PostMetric {
+  id          String      @id @default(cuid())
+  postId      String
+  platform    String
+  impressions Int         @default(0)
+  engagement  Int         @default(0)
+  clicks      Int         @default(0)
+  shares      Int         @default(0)
+  comments    Int         @default(0)
+  recordedAt  DateTime    @default(now())
+
+  @@index([postId])
+  @@index([recordedAt])
+}
