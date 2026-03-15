@@ -77,12 +77,12 @@ export default function BatchPage() {
     Promise.all([
       fetch(`${API}/api/posts/batch/${batchRunId}`, { headers }).then(r => r.ok ? r.json() : []),
       fetch(`${API}/api/posts/batch/${batchRunId}/summary`, { headers }).then(r => r.ok ? r.json() : {}),
-    ]).then(([postsData, summaryData]) => {
+    ]).then(([postsData, summaryData]: [Post[], Record<string, number>]) => {
       setPosts(postsData);
       setSummary({
-        draft: summaryData.draft || 0,
-        approved: summaryData.approved || 0,
-        rejected: summaryData.rejected || 0,
+        draft: summaryData['draft'] || 0,
+        approved: summaryData['approved'] || 0,
+        rejected: summaryData['rejected'] || 0,
       });
     });
   }, [token]);
