@@ -15,10 +15,10 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-# Verify the build produced output
-RUN test -f dist/main.js || (echo "Build failed: dist/main.js not found" && exit 1)
+# Verify the build produced output (rootDir=src → dist/main.js)
+RUN test -f dist/main.js || test -f dist/src/main.js || (echo "Build failed: no main.js found in dist/" && exit 1)
 
 EXPOSE 3000
 
 # db push applies the schema directly (no migration files needed)
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node $(test -f dist/main.js && echo dist/main.js || echo dist/src/main.js)"]
