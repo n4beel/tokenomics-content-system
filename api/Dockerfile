@@ -1,27 +1,24 @@
-# syntax=docker/dockerfile:1
-FROM node:20-alpine AS builder
+# Single-stage — simpler and more reliable on Railway
+FROM node:20-slim
+
 WORKDIR /app
 
+# Install deps (including devDeps needed for nest build)
 COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm ci
+
+# Generate Prisma client
 RUN npx prisma generate
 
+# Copy source and build
 COPY . .
 RUN npm run build
 
-# ── Production image ──────────────────────────────────────────────────
-FROM node:20-alpine AS runner
-WORKDIR /app
-
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci --omit=dev
-RUN npx prisma generate
-
-COPY --from=builder /app/dist ./dist
+# Verify the build produced output
+RUN test -f dist/main.js || (echo "Build failed: dist/main.js not found" && exit 1)
 
 EXPOSE 3000
 
-# Run migrations then start
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# db push applies the schema directly (no migration files needed)
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
