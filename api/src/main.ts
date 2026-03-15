@@ -7,9 +7,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const port = process.env.PORT ?? 3000;
 
-  // Enable CORS for dashboard (Next.js will run on a different port)
+  // Enable CORS for dashboard (Next.js config and Vercel)
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3002'],
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'https://tokenomics-content-system.vercel.app',
+      'https://tokenomics-content-system.vercel.app/', // Sometimes trailing slash is included
+    ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
