@@ -25,6 +25,7 @@ import { AppController } from './app.controller';
         connection: {
           host: config.get<string>('REDIS_HOST', 'localhost'),
           port: config.get<number>('REDIS_PORT', 6379),
+          password: config.get<string>('REDIS_PASSWORD') || undefined,
         },
       }),
     }),
