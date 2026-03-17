@@ -73,8 +73,6 @@ export class AgentClientService {
     this.logger.log(`[${batchId}] Creating session for weekly pipeline...`);
     await this.createSession(appName, userId, sessionId);
 
-    console.log("just test")
-
     this.logger.log(
       `[${batchId}] Running weekly pipeline (Riley → Maya → Quill ↔ MayaQA)...`,
     );
