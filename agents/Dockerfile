@@ -21,10 +21,15 @@ RUN npm ci
 
 COPY . .
 
+# Make entrypoint executable
+RUN chmod +x docker-entrypoint.sh
+
 # ChromaDB persistent data — mount a Railway volume here
 RUN mkdir -p /data/chroma
 ENV CHROMA_DATA_DIR=/data/chroma
 
 EXPOSE 8000
 
+# Entrypoint seeds ChromaDB volume on first boot, then runs CMD
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["npm", "run", "start"]

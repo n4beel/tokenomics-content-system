@@ -1,0 +1,60 @@
+/* Tokenomics.net Brand Fonts for Mermaid Diagrams */
+/* Fonts loaded via absolute file:// URLs for reliable Puppeteer rendering */
+
+@font-face {
+  font-family: "Libre Baskerville";
+  font-weight: bold;
+  font-style: normal;
+  src: url("file:///Users/tonydrummond/Desktop/Brand Knowledge/07_Output/tokenomics-seo/brand/fonts/LibreBaskerville-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Libre Baskerville";
+  font-weight: normal;
+  font-style: normal;
+  src: url("file:///Users/tonydrummond/Desktop/Brand Knowledge/07_Output/tokenomics-seo/brand/fonts/LibreBaskerville-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Libre Baskerville";
+  font-weight: normal;
+  font-style: italic;
+  src: url("file:///Users/tonydrummond/Desktop/Brand Knowledge/07_Output/tokenomics-seo/brand/fonts/LibreBaskerville-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Libre Franklin";
+  font-weight: normal;
+  font-style: normal;
+  src: url("file:///Users/tonydrummond/Desktop/Brand Knowledge/07_Output/tokenomics-seo/brand/fonts/LibreFranklin-Regular.ttf") format("truetype");
+}
+
+/* Global Mermaid styling overrides */
+text, .label, .nodeLabel, .edgeLabel, .title, .pieTitleText, .legend text, .tick text {
+  font-family: "Libre Franklin", "Libre Baskerville", sans-serif !important;
+}
+
+.title, .pieTitleText, h1, h2, .titleText {
+  font-family: "Libre Baskerville", serif !important;
+  font-weight: bold !important;
+}
+
+.nodeLabel, .label {
+  font-family: "Libre Franklin", sans-serif !important;
+  font-size: 14px !important;
+}
+
+.edgeLabel {
+  font-family: "Libre Franklin", sans-serif !important;
+  font-size: 12px !important;
+}
+
+/* Fix text clipping with custom fonts — overflow visible + horizontal padding */
+.node foreignObject {
+  overflow: visible !important;
+}
+
+.node foreignObject div {
+  padding: 2px 8px !important;
+  text-align: center !important;
+}

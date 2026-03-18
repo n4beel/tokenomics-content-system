@@ -1,0 +1,123 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#1A1714",
+    "fontFamily": "Libre Franklin, Libre Baskerville, sans-serif",
+    "fontSize": "14px",
+
+    "primaryColor": "#2A2520",
+    "primaryTextColor": "#FAF8F5",
+    "primaryBorderColor": "#B8956E",
+
+    "secondaryColor": "#332E28",
+    "secondaryTextColor": "#FAF8F5",
+    "secondaryBorderColor": "#96734E",
+
+    "tertiaryColor": "#3D3630",
+    "tertiaryTextColor": "#FAF8F5",
+    "tertiaryBorderColor": "#D4B896",
+
+    "lineColor": "#B8956E",
+    "textColor": "#FAF8F5",
+    "mainBkg": "#2A2520",
+
+    "nodeBorder": "#B8956E",
+    "clusterBkg": "#221E1A",
+    "clusterBorder": "#96734E",
+    "defaultLinkColor": "#B8956E",
+    "titleColor": "#FAF8F5",
+    "edgeLabelBackground": "#1A1714",
+    "nodeTextColor": "#FAF8F5",
+
+    "actorBkg": "#2A2520",
+    "actorBorder": "#B8956E",
+    "actorTextColor": "#FAF8F5",
+    "actorLineColor": "#96734E",
+    "signalColor": "#B8956E",
+    "signalTextColor": "#FAF8F5",
+    "labelBoxBkgColor": "#2A2520",
+    "labelBoxBorderColor": "#B8956E",
+    "labelTextColor": "#FAF8F5",
+    "loopTextColor": "#FAF8F5",
+    "activationBorderColor": "#B8956E",
+    "activationBkgColor": "#332E28",
+
+    "noteBkgColor": "#332E28",
+    "noteTextColor": "#FAF8F5",
+    "noteBorderColor": "#B8956E",
+
+    "pie1": "#B8956E",
+    "pie2": "#96734E",
+    "pie3": "#D4B896",
+    "pie4": "#FAF8F5",
+    "pie5": "#6B5A48",
+    "pie6": "#E8DFD4",
+    "pie7": "#7D6B58",
+    "pie8": "#C4A882",
+    "pieTitleTextColor": "#FAF8F5",
+    "pieSectionTextColor": "#1A1714",
+    "pieLegendTextColor": "#FAF8F5",
+    "pieStrokeColor": "#1A1714",
+    "pieStrokeWidth": "2px",
+
+    "quadrant1Fill": "#332E28",
+    "quadrant2Fill": "#2A2520",
+    "quadrant3Fill": "#221E1A",
+    "quadrant4Fill": "#2A2520",
+    "quadrantPointFill": "#B8956E",
+    "quadrantXAxisTextFill": "#FAF8F5",
+    "quadrantYAxisTextFill": "#FAF8F5",
+    "quadrantTitleFill": "#FAF8F5",
+    "quadrantInternalBorderStrokeFill": "#96734E",
+    "quadrantExternalBorderStrokeFill": "#B8956E",
+    "quadrantPointTextFill": "#FAF8F5",
+
+    "cScale0": "#B8956E",
+    "cScale1": "#96734E",
+    "cScale2": "#D4B896",
+    "cScale3": "#6B5A48",
+    "cScale4": "#E8DFD4",
+    "cScale5": "#7D6B58",
+    "cScaleLabel0": "#FAF8F5",
+    "cScaleLabel1": "#FAF8F5",
+    "cScaleLabel2": "#1A1714",
+    "cScaleLabel3": "#FAF8F5",
+    "cScaleLabel4": "#1A1714",
+    "cScaleLabel5": "#FAF8F5"
+  },
+  "flowchart": {
+    "curve": "linear",
+    "padding": 25,
+    "nodeSpacing": 35,
+    "rankSpacing": 50,
+    "htmlLabels": true,
+    "useMaxWidth": false
+  },
+  "pie": {
+    "useMaxWidth": false,
+    "textPosition": 0.75
+  },
+  "timeline": {
+    "useMaxWidth": false,
+    "disableMulticolor": false
+  },
+  "sankey": {
+    "useMaxWidth": false,
+    "width": 800,
+    "height": 400,
+    "linkColor": "gradient",
+    "nodeAlignment": "justify"
+  },
+  "block": {
+    "useMaxWidth": false,
+    "padding": 24
+  },
+  "quadrantChart": {
+    "useMaxWidth": false,
+    "chartWidth": 800,
+    "chartHeight": 600,
+    "titleFontSize": 20,
+    "pointRadius": 8
+  }
+}

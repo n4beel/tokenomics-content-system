@@ -101,13 +101,13 @@ export class AgentClientService {
     await this.createSession(appName, userId, sessionId);
 
     this.logger.log(
-      `[${batchId}] Running blog pipeline (Riley → Sam)...`,
+      `[${batchId}] Running blog pipeline (Riley → Sam → SamQA)...`,
     );
     const result = await this.run(
       appName,
       userId,
       sessionId,
-      'Generate two SEO blog posts for this week. Focus on Tokenomics and DeFi topics. Route this to the SamPipeline.',
+      'Run the full blog pipeline: pick the next 2 queued topics from clusters, research each with Perplexity Sonar, write complete MDX posts following the template, generate hero + OG images, render Mermaid diagrams, run QA validation, and publish as drafts to cms.tokenomics.net.',
     );
 
     this.logger.log(`[${batchId}] Blog pipeline complete`);
