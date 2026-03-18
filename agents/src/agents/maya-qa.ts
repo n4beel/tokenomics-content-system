@@ -1,6 +1,7 @@
 import { LlmAgent } from '@google/adk';
 
 const MODEL = process.env.LLM_MODEL || 'gemini-2.0-flash';
+// const MODEL = 'gemini-3.1-pro-preview'; // Hardcoded to prevent lite models from truncating the large 15-post QA output
 
 export const mayaQaAgent = new LlmAgent({
   name: 'MayaQA',

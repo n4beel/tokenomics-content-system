@@ -48,6 +48,9 @@ export class BatchProcessor extends WorkerHost {
         case 'daily-news':
           result = await this.processDailyNews(job);
           break;
+        case 'blog':
+          result = await this.processBlogBatch(job);
+          break;
         default:
           throw new Error(`Unknown batch type: ${type}`);
       }
@@ -114,5 +117,14 @@ export class BatchProcessor extends WorkerHost {
     const result = await this.agentClient.runDailyNewsScan(batchId);
     await job.updateProgress(100);
     return { batchId, result };
+  }
+
+  private async processBlogBatch(job: Job<BatchJobData>) {
+    const { batchId } = job.data;
+    await job.updateProgress(10);
+    this.logger.log(`[${batchId}] Starting blog pipeline...`);
+    const result = await this.agentClient.runBlogPipeline(batchId);
+    await job.updateProgress(100);
+    return result;
   }
 }

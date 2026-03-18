@@ -16,10 +16,10 @@
  *   npx adk api_server . # Production API server
  */
 import { SequentialAgent, LoopAgent } from '@google/adk';
-import { rileyAgent } from './riley.js';
-import { mayaAgent } from './maya.js';
-import { quillAgent } from './quill.js';
-import { mayaQaAgent } from './maya-qa.js';
+import { rileyAgent } from './agents/riley.js';
+import { mayaAgent } from './agents/maya.js';
+import { quillAgent } from './agents/quill.js';
+import { mayaQaAgent } from './agents/maya-qa.js';
 
 /**
  * QA Loop: Quill writes → MayaQA reviews

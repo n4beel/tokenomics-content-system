@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Tokenomics.net AI Content Generation Agents",
   "type": "module",
-  "main": "agent.ts",
+  "main": "src/agent.ts",
   "scripts": {
-    "dev": "npx adk web",
-    "dev:cli": "npx adk run agent.ts",
-    "start": "npx adk api_server ."
+    "dev": "nodemon -e ts -x \"npx adk web\"",
+    "dev:cli": "npx adk run src/agent.ts",
+    "start": "nodemon -e ts -x \"npx adk api_server src/\"",
+    "ingest": "uv run --with chromadb python src/scripts/ingest.py",
+    "ingest:dry-run": "uv run --with chromadb python src/scripts/ingest.py --dry-run"
   },
   "dependencies": {
     "@google/adk": "^0.5.0",
@@ -16,7 +18,8 @@
   },
   "devDependencies": {
     "@google/adk-devtools": "^0.5.0",
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "nodemon": "^3.1.14",
+    "typescript": "^5.7.0"
   }
 }

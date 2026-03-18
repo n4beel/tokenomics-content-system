@@ -1,5 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as http from 'http';
+import * as https from 'https';
 
 /**
  * HTTP client for the standalone ADK Agent Service.
@@ -66,7 +68,7 @@ export class AgentClientService {
    * App name = 'agent' (ADK api_server uses the directory name, not rootAgent.name)
    */
   async runWeeklyPipeline(batchId: string): Promise<any> {
-    const appName = 'agent';
+    const appName = 'src';
     const userId = 'system';
     const sessionId = `batch-${batchId}`;
 
@@ -88,10 +90,35 @@ export class AgentClientService {
   }
 
   /**
+   * Convenience: run the blog content pipeline
+   */
+  async runBlogPipeline(batchId: string): Promise<any> {
+    const appName = 'src/sam-pipeline.ts';
+    const userId = 'system';
+    const sessionId = `blog-${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for blog pipeline...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(
+      `[${batchId}] Running blog pipeline (Riley → Sam)...`,
+    );
+    const result = await this.run(
+      appName,
+      userId,
+      sessionId,
+      'Generate two SEO blog posts for this week. Focus on Tokenomics and DeFi topics. Route this to the SamPipeline.',
+    );
+
+    this.logger.log(`[${batchId}] Blog pipeline complete`);
+    return result;
+  }
+
+  /**
    * Convenience: run the daily news scan
    */
   async runDailyNewsScan(batchId: string): Promise<any> {
-    const appName = 'agent';
+    const appName = 'src';
     const userId = 'system';
     const sessionId = `news-${batchId}`;
 
@@ -118,32 +145,76 @@ export class AgentClientService {
     path: string,
     body?: unknown,
   ): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
+    const urlString = `${this.baseUrl}${path}`;
+    const url = new URL(urlString);
+    const client = url.protocol === 'https:' ? https : http;
+    const bodyString = body ? JSON.stringify(body) : '';
 
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        ...(body ? { body: JSON.stringify(body) } : {}),
+    return new Promise((resolve, reject) => {
+      const req = client.request(
+        url,
+        {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(bodyString ? { 'Content-Length': Buffer.byteLength(bodyString) } : {}),
+          },
+          timeout: 1000 * 60 * 30, // 30 minute timeout for heavy LLM operations
+        },
+        (res) => {
+          let data = '';
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data));
+              } catch (e) {
+                reject(
+                  new HttpException(
+                    'Invalid JSON response from Agent Service',
+                    HttpStatus.BAD_GATEWAY,
+                  ),
+                );
+              }
+            } else {
+              reject(
+                new HttpException(
+                  `Agent Service Error: ${res.statusCode} - ${data}`,
+                  HttpStatus.BAD_GATEWAY,
+                ),
+              );
+            }
+          });
+        },
+      );
+
+      req.on('error', (error) => {
+        this.logger.error(`Agent Service unreachable at ${urlString}: ${error}`);
+        reject(
+          new HttpException(
+            'Agent Service is unreachable. Ensure the ADK service is running.',
+            HttpStatus.SERVICE_UNAVAILABLE,
+          ),
+        );
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new HttpException(
-          `Agent Service Error: ${response.status} - ${errorText}`,
-          HttpStatus.BAD_GATEWAY,
+      req.on('timeout', () => {
+        req.destroy();
+        this.logger.error(`Agent Service request timed out at ${urlString}`);
+        reject(
+          new HttpException(
+            'Agent Service Request Timeout (30m limit reached)',
+            HttpStatus.GATEWAY_TIMEOUT,
+          ),
         );
+      });
+
+      if (bodyString) {
+        req.write(bodyString);
       }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-
-      this.logger.error(`Agent Service unreachable at ${url}: ${error}`);
-      throw new HttpException(
-        'Agent Service is unreachable. Ensure the ADK service is running.',
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
+      req.end();
+    });
   }
 }

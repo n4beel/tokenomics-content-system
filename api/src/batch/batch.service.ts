@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface BatchJobData {
   batchId: string;
-  type: 'weekly' | 'daily-news' | 'reactive';
+  type: 'weekly' | 'daily-news' | 'reactive' | 'blog';
   triggeredBy: 'scheduler' | 'manual';
   triggeredAt: string;
 }
@@ -29,6 +29,23 @@ export class BatchService {
     const job = await this.batchQueue.add('weekly-batch', {
       batchId,
       type: 'weekly',
+      triggeredBy,
+      triggeredAt: new Date().toISOString(),
+    } as BatchJobData);
+
+    return { batchId, jobId: job.id };
+  }
+
+  /**
+   * Queue a blog batch job
+   */
+  async triggerBlogBatch(triggeredBy: 'scheduler' | 'manual' = 'manual') {
+    const batchId = `blog-${uuidv4().slice(0, 8)}`;
+    this.logger.log(`Triggering blog batch: ${batchId} (by: ${triggeredBy})`);
+
+    const job = await this.batchQueue.add('blog-batch', {
+      batchId,
+      type: 'blog',
       triggeredBy,
       triggeredAt: new Date().toISOString(),
     } as BatchJobData);

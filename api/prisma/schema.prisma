@@ -72,6 +72,11 @@ model Post {
   cmsId       String?     // Payload CMS post ID
   cmsUrl      String?
 
+  // YouTube specific output
+  youtubeTitle          String? @db.Text
+  youtubeDescription    String? @db.Text
+  youtubeThumbnailBrief String? @db.Text
+
   // Metadata
   slot        String?     // e.g. "monday-morning"
   format      String?     // text | video | carousel
