@@ -134,6 +134,12 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Failed to save");
       setConfig(await res.json());
       setSaveMsg({ text: "Settings saved", ok: true });
+
+      // Hot-reload cron schedules from DB (fire-and-forget)
+      fetch(`${API}/api/batch/refresh-schedules`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {/* non-critical */});
     } catch {
       setSaveMsg({ text: "Failed to save settings", ok: false });
     } finally {

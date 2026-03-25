@@ -1,65 +1,287 @@
 /**
  * KimiLlm — a BaseLlm subclass for Kimi K2.5 via OpenAI-compatible REST API.
  *
- * ADK TypeScript only ships Gemini and Apigee connectors. This class bridges
+ * ADK TypeScript ships Gemini connectors. This class bridges
  * Kimi's OpenAI-compatible endpoint (api.moonshot.cn/v1) into ADK's BaseLlm
- * interface.
+ * interface, WITH full tool/function calling support.
  *
- * Registration (call once before rootAgent is imported):
+ * Registration:
  *   import { LLMRegistry } from '@google/adk';
  *   import { KimiLlm } from './kimi-llm.js';
  *   LLMRegistry.register(KimiLlm);
+ *
+ * Then set LLM_MODEL=kimi/kimi-k2.5 in .env
  */
 import { BaseLlm, type LlmRequest, type LlmResponse } from '@google/adk';
+import type { Content, Part, FunctionCall, FunctionResponse } from '@google/genai';
+
+// ─── Types for OpenAI-compatible API ─────────────────────────────────────────
+
+interface OpenAIMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content?: string | null;
+  tool_calls?: OpenAIToolCall[];
+  tool_call_id?: string;
+}
+
+interface OpenAIToolCall {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
+}
+
+interface OpenAITool {
+  type: 'function';
+  function: {
+    name: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  };
+}
+
+interface OpenAIChoice {
+  message: OpenAIMessage;
+  finish_reason: string;
+}
+
+interface OpenAIResponse {
+  choices: OpenAIChoice[];
+  usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+}
+
+// ─── KimiLlm ────────────────────────────────────────────────────────────────
 
 export class KimiLlm extends BaseLlm {
   /** Matches any model string starting with "kimi/" */
-  static override supportedModels: (string | RegExp)[] = [/kimi\/.*/];
+  static override readonly supportedModels: (string | RegExp)[] = [/^kimi\/.*/];
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
 
   constructor({ model }: { model: string }) {
     super({ model });
-    this.apiKey = process.env.OPENAI_API_KEY ?? process.env.KIMI_API_KEY ?? '';
-    this.baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.moonshot.cn/v1';
+    // Priority: KIMI_API_KEY → OPENROUTER_API_KEY → OPENAI_API_KEY
+    this.apiKey = process.env.KIMI_API_KEY ?? process.env.OPENROUTER_API_KEY ?? process.env.OPENAI_API_KEY ?? '';
+    // Default to OpenRouter if no explicit base URL and we're using OPENROUTER key
+    const defaultBaseUrl = process.env.KIMI_API_KEY
+      ? 'https://api.moonshot.ai/v1'
+      : 'https://openrouter.ai/api/v1';
+    this.baseUrl = process.env.KIMI_BASE_URL ?? defaultBaseUrl;
     if (!this.apiKey) {
-      throw new Error('KimiLlm: OPENAI_API_KEY or KIMI_API_KEY env var is required.');
+      throw new Error('KimiLlm: KIMI_API_KEY, OPENROUTER_API_KEY, or OPENAI_API_KEY env var is required.');
     }
+    console.log(`[KimiLlm] Using model=${this.kimiModel} via ${this.baseUrl}`);
   }
 
-  /** Strip "kimi/" prefix to get the real model id: "moonshot-v1-8k" */
+  /** Strip "kimi/" prefix to get the real model id */
   private get kimiModel(): string {
     return this.model.replace(/^kimi\//, '');
   }
 
-  /**
-   * Convert ADK's Gemini-style contents array to OpenAI-style messages.
-   * Role "model" → "assistant".
-   */
-  private toOpenAIMessages(
-    req: LlmRequest,
-  ): { role: string; content: string }[] {
-    const messages: { role: string; content: string }[] = [];
+  // ── Convert ADK Gemini-style request → OpenAI messages ──
+
+  private toOpenAIMessages(req: LlmRequest): OpenAIMessage[] {
+    const messages: OpenAIMessage[] = [];
 
     // System instruction from config
-    const sys = (req.config as any)?.systemInstruction;
+    const cfg = req.config as Record<string, any> | undefined;
+    const sys = cfg?.systemInstruction;
     if (typeof sys === 'string' && sys.trim()) {
       messages.push({ role: 'system', content: sys });
-    }
-
-    for (const content of req.contents) {
-      const text = (content.parts ?? [])
+    } else if (sys?.parts) {
+      const text = (sys.parts as any[])
         .map((p: any) => p.text ?? '')
         .filter(Boolean)
         .join('\n');
-      if (!text) continue;
+      if (text) messages.push({ role: 'system', content: text });
+    }
+
+    for (const content of req.contents) {
       const role = content.role === 'model' ? 'assistant' : (content.role ?? 'user');
-      messages.push({ role, content: text });
+      const parts = content.parts ?? [];
+
+      // Check if this content has function calls (assistant → tool_calls)
+      const functionCalls = parts.filter((p: any) => p.functionCall) as Array<Part & { functionCall: FunctionCall }>;
+      if (role === 'assistant' && functionCalls.length > 0) {
+        const toolCalls: OpenAIToolCall[] = functionCalls.map((p, i) => ({
+          id: `call_${messages.length}_${i}`,
+          type: 'function' as const,
+          function: {
+            name: p.functionCall!.name!,
+            arguments: JSON.stringify(p.functionCall!.args ?? {}),
+          },
+        }));
+
+        // Also grab any text parts
+        const textParts = parts.filter((p: any) => p.text).map((p: any) => p.text).join('\n');
+
+        messages.push({
+          role: 'assistant',
+          content: textParts || null,
+          tool_calls: toolCalls,
+        });
+        continue;
+      }
+
+      // Check for function responses (user role with functionResponse → tool role)
+      const functionResponses = parts.filter((p: any) => p.functionResponse) as Array<Part & { functionResponse: FunctionResponse }>;
+      if (functionResponses.length > 0) {
+        for (const p of functionResponses) {
+          // Find matching tool_call_id from the previous assistant message
+          const toolCallId = this.findToolCallId(messages, p.functionResponse!.name!);
+          messages.push({
+            role: 'tool',
+            tool_call_id: toolCallId,
+            content: JSON.stringify(p.functionResponse!.response ?? {}),
+          });
+        }
+        continue;
+      }
+
+      // Regular text content
+      const text = parts
+        .map((p: any) => p.text ?? '')
+        .filter(Boolean)
+        .join('\n');
+      if (text) {
+        messages.push({ role: role as 'user' | 'assistant', content: text });
+      }
     }
 
     return messages;
   }
+
+  /** Find tool_call_id for a function name from previous assistant messages */
+  private findToolCallId(messages: OpenAIMessage[], fnName: string): string {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.role === 'assistant' && msg.tool_calls) {
+        const tc = msg.tool_calls.find(tc => tc.function.name === fnName);
+        if (tc) return tc.id;
+      }
+    }
+    return `call_${fnName}`;
+  }
+
+  // ── Convert ADK tool declarations → OpenAI tools format ──
+
+  private toOpenAITools(req: LlmRequest): OpenAITool[] | undefined {
+    const cfg = req.config as Record<string, any> | undefined;
+    const tools = cfg?.tools;
+    if (!tools || !Array.isArray(tools)) return undefined;
+
+    const openAITools: OpenAITool[] = [];
+    for (const tool of tools) {
+      if (tool.functionDeclarations) {
+        for (const fn of tool.functionDeclarations) {
+          openAITools.push({
+            type: 'function',
+            function: {
+              name: fn.name,
+              description: fn.description ?? '',
+              parameters: fn.parameters ?? { type: 'object', properties: {} },
+            },
+          });
+        }
+      }
+    }
+    return openAITools.length > 0 ? openAITools : undefined;
+  }
+
+  // ── Convert Gemini Schema → JSON Schema ──
+
+  /**
+   * Recursively convert a Gemini-style schema (with Type.STRING etc.)
+   * to standard JSON Schema format for OpenAI's response_format.
+   */
+  private geminiSchemaToJsonSchema(geminiSchema: Record<string, any>): Record<string, any> {
+    const jsonSchema: Record<string, any> = {};
+
+    // Gemini uses Type enum values like 'STRING', 'OBJECT', 'ARRAY', etc.
+    // Convert to lowercase JSON Schema types
+    if (geminiSchema.type) {
+      const typeStr = String(geminiSchema.type).toLowerCase();
+      jsonSchema.type = typeStr;
+    }
+
+    if (geminiSchema.description) {
+      jsonSchema.description = geminiSchema.description;
+    }
+
+    if (geminiSchema.enum) {
+      jsonSchema.enum = geminiSchema.enum;
+    }
+
+    if (geminiSchema.nullable) {
+      // JSON Schema: use oneOf with null type or simply allow null
+      // For compatibility, add nullable
+      jsonSchema.nullable = true;
+    }
+
+    // Object properties
+    if (geminiSchema.properties) {
+      jsonSchema.properties = {};
+      for (const [key, val] of Object.entries(geminiSchema.properties)) {
+        jsonSchema.properties[key] = this.geminiSchemaToJsonSchema(val as Record<string, any>);
+      }
+    }
+
+    // Required fields
+    if (geminiSchema.required) {
+      jsonSchema.required = geminiSchema.required;
+    }
+
+    // Array items
+    if (geminiSchema.items) {
+      jsonSchema.items = this.geminiSchemaToJsonSchema(geminiSchema.items);
+    }
+
+    return jsonSchema;
+  }
+
+  // ── Convert OpenAI response → ADK LlmResponse ──
+
+  private toAdkResponse(choice: OpenAIChoice): LlmResponse {
+    const msg = choice.message;
+    const parts: Part[] = [];
+
+    // Text content
+    if (msg.content) {
+      parts.push({ text: msg.content });
+    }
+
+    // Tool calls → functionCall parts
+    if (msg.tool_calls && msg.tool_calls.length > 0) {
+      for (const tc of msg.tool_calls) {
+        let args: Record<string, unknown> = {};
+        try {
+          args = JSON.parse(tc.function.arguments);
+        } catch {
+          args = { raw: tc.function.arguments };
+        }
+        parts.push({
+          functionCall: {
+            name: tc.function.name,
+            args,
+          },
+        } as Part);
+      }
+    }
+
+    // Fallback if no parts
+    if (parts.length === 0) {
+      parts.push({ text: '' });
+    }
+
+    return {
+      content: {
+        role: 'model',
+        parts,
+      },
+    } as LlmResponse;
+  }
+
+  // ── Main generation method ──
 
   async *generateContentAsync(
     llmRequest: LlmRequest,
@@ -68,38 +290,80 @@ export class KimiLlm extends BaseLlm {
     this.maybeAppendUserContent(llmRequest);
 
     const messages = this.toOpenAIMessages(llmRequest);
-    const model = (llmRequest as any).model ?? this.kimiModel;
+    const tools = this.toOpenAITools(llmRequest);
+    const model = this.kimiModel;
+
+    const body: Record<string, unknown> = {
+      model,
+      messages,
+      stream: false,
+    };
+
+    if (tools) {
+      body.tools = tools;
+      body.tool_choice = 'auto';
+    }
+
+    // ── Bridge ADK outputSchema → OpenAI response_format ──
+    // ADK sets config.responseMimeType = 'application/json' and config.responseSchema
+    // when an agent has outputSchema. Convert to OpenAI's response_format.
+    const cfg = llmRequest.config as Record<string, any> | undefined;
+    if (cfg?.responseMimeType === 'application/json' && cfg?.responseSchema) {
+      const jsonSchema = this.geminiSchemaToJsonSchema(cfg.responseSchema);
+      body.response_format = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'agent_output',
+          strict: false, // Kimi may not support strict mode fully
+          schema: jsonSchema,
+        },
+      };
+      console.log('[KimiLlm] Enforcing JSON schema output via response_format');
+    }
+
+    // Extract temperature from config if set
+    if (cfg?.temperature !== undefined) {
+      body.temperature = cfg.temperature;
+    }
 
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
+        'Authorization': `Bearer ${this.apiKey}`,
       },
-      body: JSON.stringify({ model, messages, stream: false }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[KimiLlm] API error ${response.status}: ${errorText}`);
       yield {
-        errorCode: String(response.status),
-        errorMessage: `Kimi API error ${response.status}: ${errorText}`,
-      } as unknown as LlmResponse;
+        content: {
+          role: 'model',
+          parts: [{ text: `[Kimi API Error ${response.status}]: ${errorText.slice(0, 500)}` }],
+        },
+      } as LlmResponse;
       return;
     }
 
-    const data = await response.json() as {
-      choices: { message: { content: string } }[];
-    };
+    const data = (await response.json()) as OpenAIResponse;
+    const choice = data.choices?.[0];
 
-    const text = data.choices?.[0]?.message?.content ?? '';
+    if (!choice) {
+      yield {
+        content: { role: 'model', parts: [{ text: '[Kimi API Error]: No choices in response' }] },
+      } as LlmResponse;
+      return;
+    }
 
-    yield {
-      content: {
-        role: 'model',
-        parts: [{ text }],
-      },
-    } as unknown as LlmResponse;
+    if (data.usage) {
+      console.log(
+        `[KimiLlm] Usage: ${data.usage.prompt_tokens} prompt + ${data.usage.completion_tokens} completion = ${data.usage.total_tokens} total tokens`,
+      );
+    }
+
+    yield this.toAdkResponse(choice);
   }
 
   /** Required by BaseLlm for live/streaming sessions — not used for batch. */

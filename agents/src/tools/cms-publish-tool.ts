@@ -7,6 +7,7 @@ import path from 'path';
 
 const CMS_URL = process.env.PAYLOAD_CMS_URL || 'https://cms.tokenomics.net';
 const API_KEY = process.env.PAYLOAD_API_KEY || '';
+const API_KEY_COLLECTION = process.env.PAYLOAD_API_KEY_COLLECTION || 'payload-mcp-api-keys';
 
 const cmsParams = z.object({
   title: z.string().describe('Post title'),
@@ -56,7 +57,7 @@ function cmsRequest(method: string, apiPath: string, body?: any, contentType?: s
     const req = client.request(url, {
       method,
       headers: {
-        'Authorization': `users API-Key ${API_KEY}`,
+        'Authorization': `${API_KEY_COLLECTION} API-Key ${API_KEY}`,
         'Content-Type': contentType || 'application/json',
         ...(bodyData ? { 'Content-Length': bodyData.length } : {}),
       },

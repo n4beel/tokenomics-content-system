@@ -1,25 +1,64 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 import { BatchService } from './batch.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
-export class BatchScheduler {
+export class BatchScheduler implements OnModuleInit {
   private readonly logger = new Logger(BatchScheduler.name);
 
   constructor(
     private readonly batchService: BatchService,
-    private readonly config: ConfigService,
+    private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly settings: SettingsService,
   ) {}
 
+  async onModuleInit() {
+    await this.registerSchedules();
+  }
+
   /**
-   * Weekly batch trigger
-   * Default: Saturday at 5:00 AM (configurable via BATCH_CRON env)
-   * Cron annotation is the default; the actual schedule can be overridden
-   * via the dashboard settings in the future.
+   * Register cron jobs from DB settings.
+   * Called on startup and after settings change via refresh endpoint.
    */
-  @Cron('0 5 * * 6', { name: 'weekly-batch' })
-  async handleWeeklyBatch() {
+  async refreshSchedules() {
+    // Delete existing jobs if they exist
+    this.deleteCronIfExists('weekly-batch');
+    this.deleteCronIfExists('daily-news-scan');
+
+    await this.registerSchedules();
+    this.logger.log('Cron schedules refreshed from DB settings');
+  }
+
+  private async registerSchedules() {
+    const weeklyCron = await this.settings.getWeeklyCron();
+    const dailyCron = await this.settings.getDailyNewsCron();
+
+    // Weekly batch
+    const weeklyJob = new CronJob(weeklyCron, () => this.handleWeeklyBatch());
+    this.schedulerRegistry.addCronJob('weekly-batch', weeklyJob);
+    weeklyJob.start();
+    this.logger.log(`Registered dynamic cron 'weekly-batch': ${weeklyCron}`);
+
+    // Daily news scan
+    const dailyJob = new CronJob(dailyCron, () => this.handleDailyNewsScan());
+    this.schedulerRegistry.addCronJob('daily-news-scan', dailyJob);
+    dailyJob.start();
+    this.logger.log(`Registered dynamic cron 'daily-news-scan': ${dailyCron}`);
+  }
+
+  private deleteCronIfExists(name: string) {
+    try {
+      const job = this.schedulerRegistry.getCronJob(name);
+      job.stop();
+      this.schedulerRegistry.deleteCronJob(name);
+    } catch {
+      // Job doesn't exist yet — fine
+    }
+  }
+
+  private async handleWeeklyBatch() {
     this.logger.log('Scheduled weekly batch triggered');
     const { batchId, jobId } = await this.batchService.triggerWeeklyBatch(
       'scheduler',
@@ -27,12 +66,7 @@ export class BatchScheduler {
     this.logger.log(`Weekly batch queued: ${batchId} (job: ${jobId})`);
   }
 
-  /**
-   * Daily news scan
-   * Runs every weekday at 7:00 AM
-   */
-  @Cron('0 7 * * 1-5', { name: 'daily-news-scan' })
-  async handleDailyNewsScan() {
+  private async handleDailyNewsScan() {
     this.logger.log('Scheduled daily news scan triggered');
     const { batchId, jobId } = await this.batchService.triggerDailyNewsScan();
     this.logger.log(`Daily news scan queued: ${batchId} (job: ${jobId})`);

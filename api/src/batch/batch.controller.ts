@@ -1,13 +1,27 @@
 import { Controller, Post, Get, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { BatchService } from './batch.service';
+import { BatchScheduler } from './batch.scheduler';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('batch')
 export class BatchController {
   constructor(
     private readonly batchService: BatchService,
+    private readonly batchScheduler: BatchScheduler,
     private readonly prisma: PrismaService,
   ) {}
+
+  /**
+   * POST /batch/refresh-schedules
+   * Re-read cron expressions from DB and update the running schedules.
+   * Called by the dashboard after saving settings.
+   */
+  @Post('refresh-schedules')
+  @HttpCode(HttpStatus.OK)
+  async refreshSchedules() {
+    await this.batchScheduler.refreshSchedules();
+    return { message: 'Cron schedules refreshed from DB settings' };
+  }
 
   /**
    * POST /batch/trigger/weekly
