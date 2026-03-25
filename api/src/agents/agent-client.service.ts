@@ -3,6 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import * as http from 'http';
 import * as https from 'https';
 
+interface RequestFailure {
+  kind: 'network' | 'timeout' | 'http' | 'parse';
+  message: string;
+  status?: number;
+}
+
 /**
  * HTTP client for the standalone ADK Agent Service.
  * The agent service runs on its own port and exposes ADK's built-in API.
@@ -10,13 +16,55 @@ import * as https from 'https';
 @Injectable()
 export class AgentClientService {
   private readonly logger = new Logger(AgentClientService.name);
-  private readonly baseUrl: string;
+  private readonly baseUrls: string[];
 
   constructor(private readonly config: ConfigService) {
-    this.baseUrl = this.config.get<string>(
+    const configuredUrl = this.config.get<string>(
       'AGENTS_SERVICE_URL',
       'http://localhost:8000',
     );
+    this.baseUrls = this.buildCandidateBaseUrls(configuredUrl);
+    this.logger.log(`Agent service base URL candidates: ${this.baseUrls.join(', ')}`);
+  }
+
+  private buildCandidateBaseUrls(base: string): string[] {
+    const out: string[] = [];
+    const add = (url: string) => {
+      if (!out.includes(url)) out.push(url);
+    };
+
+    let parsed: URL;
+    try {
+      parsed = new URL(base);
+    } catch {
+      // Invalid URL: preserve current behavior by using it as-is.
+      return [base];
+    }
+
+    add(base);
+
+    const isRailwayInternal = parsed.hostname.endsWith('.railway.internal');
+    if (!isRailwayInternal) return out;
+
+    // Railway internal services commonly expose PORT=8080.
+    if (parsed.port === '8000') {
+      const u = new URL(base);
+      u.port = '8080';
+      add(u.toString());
+    } else if (parsed.port === '8080') {
+      const u = new URL(base);
+      u.port = '8000';
+      add(u.toString());
+    } else if (!parsed.port) {
+      const u8080 = new URL(base);
+      u8080.port = '8080';
+      add(u8080.toString());
+      const u8000 = new URL(base);
+      u8000.port = '8000';
+      add(u8000.toString());
+    }
+
+    return out;
   }
 
   /**
@@ -145,7 +193,60 @@ export class AgentClientService {
     path: string,
     body?: unknown,
   ): Promise<T> {
-    const urlString = `${this.baseUrl}${path}`;
+    let lastFailure: RequestFailure | null = null;
+
+    for (const baseUrl of this.baseUrls) {
+      const urlString = `${baseUrl}${path}`;
+      try {
+        return await this.requestOnce<T>(urlString, method, body);
+      } catch (failure: any) {
+        lastFailure = failure as RequestFailure;
+
+        const shouldRetryWithNextBase =
+          lastFailure.kind === 'network' || lastFailure.kind === 'timeout';
+
+        if (!shouldRetryWithNextBase) {
+          break;
+        }
+
+        this.logger.warn(
+          `Agent request failed at ${urlString} (${lastFailure.kind}: ${lastFailure.message}). Trying next base URL...`,
+        );
+      }
+    }
+
+    if (lastFailure?.kind === 'timeout') {
+      throw new HttpException(
+        'Agent Service request timed out (30m limit reached).',
+        HttpStatus.GATEWAY_TIMEOUT,
+      );
+    }
+
+    if (lastFailure?.kind === 'http') {
+      throw new HttpException(
+        `Agent Service Error: ${lastFailure.status} - ${lastFailure.message}`,
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
+
+    if (lastFailure?.kind === 'parse') {
+      throw new HttpException(
+        'Invalid JSON response from Agent Service',
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
+
+    throw new HttpException(
+      'Agent Service is unreachable. Ensure the ADK service is running and AGENTS_SERVICE_URL is correct.',
+      HttpStatus.SERVICE_UNAVAILABLE,
+    );
+  }
+
+  private async requestOnce<T>(
+    urlString: string,
+    method: string,
+    body?: unknown,
+  ): Promise<T> {
     const url = new URL(urlString);
     const client = url.protocol === 'https:' ? https : http;
     const bodyString = body ? JSON.stringify(body) : '';
@@ -159,7 +260,7 @@ export class AgentClientService {
             'Content-Type': 'application/json',
             ...(bodyString ? { 'Content-Length': Buffer.byteLength(bodyString) } : {}),
           },
-          timeout: 1000 * 60 * 30, // 30 minute timeout for heavy LLM operations
+          timeout: 1000 * 60 * 30,
         },
         (res) => {
           let data = '';
@@ -170,45 +271,39 @@ export class AgentClientService {
             if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
               try {
                 resolve(JSON.parse(data));
-              } catch (e) {
-                reject(
-                  new HttpException(
-                    'Invalid JSON response from Agent Service',
-                    HttpStatus.BAD_GATEWAY,
-                  ),
-                );
+              } catch {
+                reject({
+                  kind: 'parse',
+                  message: 'Response was not valid JSON',
+                } satisfies RequestFailure);
               }
-            } else {
-              reject(
-                new HttpException(
-                  `Agent Service Error: ${res.statusCode} - ${data}`,
-                  HttpStatus.BAD_GATEWAY,
-                ),
-              );
+              return;
             }
+
+            reject({
+              kind: 'http',
+              status: res.statusCode,
+              message: data,
+            } satisfies RequestFailure);
           });
         },
       );
 
       req.on('error', (error) => {
         this.logger.error(`Agent Service unreachable at ${urlString}: ${error}`);
-        reject(
-          new HttpException(
-            'Agent Service is unreachable. Ensure the ADK service is running.',
-            HttpStatus.SERVICE_UNAVAILABLE,
-          ),
-        );
+        reject({
+          kind: 'network',
+          message: String(error),
+        } satisfies RequestFailure);
       });
 
       req.on('timeout', () => {
         req.destroy();
         this.logger.error(`Agent Service request timed out at ${urlString}`);
-        reject(
-          new HttpException(
-            'Agent Service Request Timeout (30m limit reached)',
-            HttpStatus.GATEWAY_TIMEOUT,
-          ),
-        );
+        reject({
+          kind: 'timeout',
+          message: 'Request timeout',
+        } satisfies RequestFailure);
       });
 
       if (bodyString) {
