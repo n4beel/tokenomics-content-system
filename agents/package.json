@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "nodemon -e ts -x \"npx adk web\"",
     "dev:cli": "npx adk run src/agent.ts",
-    "start": "npx adk web",
+    "start": "npm run start:prod",
+    "start:prod": "npx adk api_server --host 0.0.0.0 --port ${PORT:-8000}",
     "ingest": "uv run --with chromadb python src/scripts/ingest.py",
     "ingest:dry-run": "uv run --with chromadb python src/scripts/ingest.py --dry-run"
   },
