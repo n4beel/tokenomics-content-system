@@ -27,10 +27,20 @@ export class AgentClientService {
     this.logger.log(`Agent service base URL candidates: ${this.baseUrls.join(', ')}`);
   }
 
+  private normalizeBaseUrl(url: string): string {
+    return url.replace(/\/+$/, '');
+  }
+
+  private joinUrl(baseUrl: string, path: string): string {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.normalizeBaseUrl(baseUrl)}${normalizedPath}`;
+  }
+
   private buildCandidateBaseUrls(base: string): string[] {
     const out: string[] = [];
     const add = (url: string) => {
-      if (!out.includes(url)) out.push(url);
+      const normalized = this.normalizeBaseUrl(url);
+      if (!out.includes(normalized)) out.push(normalized);
     };
 
     let parsed: URL;
@@ -38,7 +48,7 @@ export class AgentClientService {
       parsed = new URL(base);
     } catch {
       // Invalid URL: preserve current behavior by using it as-is.
-      return [base];
+      return [this.normalizeBaseUrl(base)];
     }
 
     add(base);
@@ -196,7 +206,7 @@ export class AgentClientService {
     let lastFailure: RequestFailure | null = null;
 
     for (const baseUrl of this.baseUrls) {
-      const urlString = `${baseUrl}${path}`;
+      const urlString = this.joinUrl(baseUrl, path);
       try {
         return await this.requestOnce<T>(urlString, method, body);
       } catch (failure: any) {
