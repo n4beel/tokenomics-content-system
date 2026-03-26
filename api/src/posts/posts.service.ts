@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import * as http from 'http';
+import * as https from 'https';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 const PLATFORMS = ['linkedin', 'x', 'youtube'];
@@ -127,7 +130,86 @@ function parseDraftsIntoSlots(drafts: any, batchRunId: string) {
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) { }
+
+  private cmsRequest(fullUrl: string): Promise<any> {
+    const url = new URL(fullUrl);
+    const client = url.protocol === 'https:' ? https : http;
+
+    return new Promise((resolve, reject) => {
+      const req = client.request(
+        url,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          timeout: 20_000,
+        },
+        (res) => {
+          let data = '';
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data));
+              } catch {
+                resolve({ docs: [] });
+              }
+              return;
+            }
+
+            reject(new Error(`CMS request failed (${res.statusCode}): ${String(data).slice(0, 300)}`));
+          });
+        },
+      );
+
+      req.on('error', (err) => reject(err));
+      req.on('timeout', () => {
+        req.destroy();
+        reject(new Error('CMS request timeout'));
+      });
+      req.end();
+    });
+  }
+
+  async getCmsPosts(limit = 100) {
+    const configured =
+      this.config.get<string>('PAYLOAD_CMS_URL') ||
+      this.config.get<string>('CMS_API_URL') ||
+      'https://cms.tokenomics.net/api';
+    const cmsApiBase = configured.replace(/\/+$/, '').replace(/\/api$/, '/api');
+
+    const pageSize = Math.min(Math.max(Number(limit) || 100, 1), 200);
+    const docs: any[] = [];
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const url = `${cmsApiBase}/posts?limit=${pageSize}&page=${page}`;
+      const response = await this.cmsRequest(url);
+      const pageDocs = Array.isArray(response?.docs) ? response.docs : [];
+      docs.push(...pageDocs);
+
+      hasNextPage = Boolean(response?.hasNextPage);
+      page += 1;
+
+      if (page > 100) {
+        // Prevent accidental infinite loops if CMS pagination metadata is malformed.
+        break;
+      }
+    }
+
+    return {
+      total: docs.length,
+      docs,
+    };
+  }
 
   /** Parse Quill drafts and persist as Post rows */
   async createPostsFromBatch(batchRunId: string, drafts: any): Promise<void> {

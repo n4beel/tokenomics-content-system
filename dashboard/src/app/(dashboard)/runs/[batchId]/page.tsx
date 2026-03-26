@@ -49,6 +49,8 @@ interface ToolSummary {
     lastResponsePreview: string;
 }
 
+type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+
 function formatTs(ts?: number): string {
     if (!ts) return "-";
     const millis = ts > 1e12 ? ts : ts * 1000;
@@ -117,12 +119,73 @@ function inferToolStatus(response: unknown): "success" | "error" | "unknown" {
     return "unknown";
 }
 
+function parsePossiblyStringifiedJson(value: unknown): unknown {
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    if (!(trimmed.startsWith("{") || trimmed.startsWith("["))) return value;
+
+    try {
+        return JSON.parse(trimmed);
+    } catch {
+        return value;
+    }
+}
+
+function JsonLeaf({ label, value }: { label?: string; value: string | number | boolean | null }) {
+    const prefix = label ? `${label}: ` : "";
+    return (
+        <p className="text-[12px] leading-5" style={{ color: "#d1d5db" }}>
+            <span style={{ color: "#f3f4f6" }}>{prefix}</span>
+            {value === null ? "null" : String(value)}
+        </p>
+    );
+}
+
+function JsonTreeNode({ label, value, depth = 0 }: { label?: string; value: unknown; depth?: number }) {
+    const parsed = parsePossiblyStringifiedJson(value) as JsonValue;
+
+    if (parsed === null || typeof parsed === "string" || typeof parsed === "number" || typeof parsed === "boolean") {
+        return <JsonLeaf label={label} value={parsed as string | number | boolean | null} />;
+    }
+
+    if (Array.isArray(parsed)) {
+        return (
+            <details open={depth < 1} className="rounded border border-[#374151] bg-[#111827]">
+                <summary className="cursor-pointer px-3 py-2 text-[12px]" style={{ color: "#f3f4f6" }}>
+                    {label ? `${label}: ` : ""}Array({parsed.length})
+                </summary>
+                <div className="px-3 pb-3 space-y-1">
+                    {parsed.map((item, index) => (
+                        <JsonTreeNode key={`${label || "array"}-${index}`} label={`[${index}]`} value={item} depth={depth + 1} />
+                    ))}
+                </div>
+            </details>
+        );
+    }
+
+    const entries = Object.entries(parsed || {});
+    return (
+        <details open={depth < 1} className="rounded border border-[#374151] bg-[#111827]">
+            <summary className="cursor-pointer px-3 py-2 text-[12px]" style={{ color: "#f3f4f6" }}>
+                {label ? `${label}: ` : ""}Object({entries.length})
+            </summary>
+            <div className="px-3 pb-3 space-y-1">
+                {entries.map(([k, v]) => (
+                    <JsonTreeNode key={`${label || "object"}-${k}`} label={k} value={v} depth={depth + 1} />
+                ))}
+            </div>
+        </details>
+    );
+}
+
 export default function RunDetailPage({ params }: RunPageProps) {
     const { token } = useAuth();
     const [batchId, setBatchId] = useState<string>("");
     const [run, setRun] = useState<BatchRun | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [finalStateMode, setFinalStateMode] = useState<"viewer" | "pretty">("viewer");
+    const [rawResultMode, setRawResultMode] = useState<"viewer" | "pretty">("viewer");
 
     useEffect(() => {
         params.then((p) => setBatchId(decodeURIComponent(p.batchId)));
@@ -217,7 +280,7 @@ export default function RunDetailPage({ params }: RunPageProps) {
             />
 
             {loading && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-gray-400 text-sm text-center">
+                <div className="rounded-xl p-8 text-sm text-center border" style={{ background: "#f5f1e8", borderColor: "#d6ccbf", color: "#3f3a34" }}>
                     Loading run details...
                 </div>
             )}
@@ -232,10 +295,10 @@ export default function RunDetailPage({ params }: RunPageProps) {
                 <>
                     <SurfaceCard className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-white capitalize">{run.type.replace(/-/g, " ")}</p>
+                            <p className="text-sm font-semibold capitalize" style={{ color: "#1f2937" }}>{run.type.replace(/-/g, " ")}</p>
                             <StatusBadge status={run.status} />
                         </div>
-                        <div className="text-xs text-gray-400 space-y-1">
+                        <div className="text-xs space-y-1" style={{ color: "#4b5563" }}>
                             <p>Started: {new Date(run.startedAt).toLocaleString()}</p>
                             <p>Completed: {run.completedAt ? new Date(run.completedAt).toLocaleString() : "still running"}</p>
                             <p>Triggered by: {run.triggeredBy}</p>
@@ -248,96 +311,137 @@ export default function RunDetailPage({ params }: RunPageProps) {
                         )}
                     </SurfaceCard>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-                        <h2 className="text-sm font-semibold text-white">Final State Snapshot</h2>
+                    <SurfaceCard className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-sm font-semibold" style={{ color: "#1f2937" }}>Final State Snapshot</h2>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setFinalStateMode("viewer")}
+                                    className={`tm-button px-2.5 py-1 text-xs ${finalStateMode === "viewer" ? "tm-button-primary" : ""}`}
+                                >
+                                    Viewer
+                                </button>
+                                <button
+                                    onClick={() => setFinalStateMode("pretty")}
+                                    className={`tm-button px-2.5 py-1 text-xs ${finalStateMode === "pretty" ? "tm-button-primary" : ""}`}
+                                >
+                                    Pretty JSON
+                                </button>
+                            </div>
+                        </div>
                         {Object.keys(finalState).length === 0 ? (
-                            <p className="text-xs text-gray-500">No state deltas captured.</p>
+                            <p className="text-xs" style={{ color: "#6b7280" }}>No state deltas captured.</p>
+                        ) : finalStateMode === "viewer" ? (
+                            <JsonTreeNode value={finalState} />
                         ) : (
-                            <pre className="text-xs text-gray-300 bg-gray-950 border border-gray-800 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                            <pre className="text-xs rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-[#374151] bg-[#111827]" style={{ color: "#f3f4f6" }}>
                                 {JSON.stringify(finalState, null, 2)}
                             </pre>
                         )}
-                    </div>
+                    </SurfaceCard>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-                        <h2 className="text-sm font-semibold text-white">Latest Model Output</h2>
+                    <SurfaceCard className="space-y-3">
+                        <h2 className="text-sm font-semibold" style={{ color: "#1f2937" }}>Latest Model Output</h2>
                         {lastModelText ? (
-                            <pre className="text-xs text-gray-300 bg-gray-950 border border-gray-800 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                            <pre className="text-xs rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-[#374151] bg-[#111827]" style={{ color: "#f3f4f6" }}>
                                 {lastModelText}
                             </pre>
                         ) : (
-                            <p className="text-xs text-gray-500">No text output found in events.</p>
+                            <p className="text-xs" style={{ color: "#6b7280" }}>No text output found in events.</p>
                         )}
-                    </div>
+                    </SurfaceCard>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-                        <h2 className="text-sm font-semibold text-white">Tool Calls Summary</h2>
+                    <SurfaceCard className="space-y-4">
+                        <h2 className="text-sm font-semibold" style={{ color: "#1f2937" }}>Tool Calls Summary</h2>
                         {toolSummaries.length === 0 ? (
-                            <p className="text-xs text-gray-500">No tool calls detected in captured events.</p>
+                            <p className="text-xs" style={{ color: "#6b7280" }}>No tool calls detected in captured events.</p>
                         ) : (
                             <ul className="space-y-2">
                                 {toolSummaries.map((tool) => (
-                                    <li key={tool.name} className="border border-gray-800 rounded-lg p-3 bg-gray-950/50">
+                                    <li key={tool.name} className="border rounded-lg p-3" style={{ borderColor: "#d6ccbf", background: "#fbf8f3" }}>
                                         <div className="flex items-center justify-between gap-3 flex-wrap">
-                                            <p className="text-xs font-semibold text-white">{tool.name}</p>
+                                            <p className="text-xs font-semibold" style={{ color: "#1f2937" }}>{tool.name}</p>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[11px] text-gray-400">calls: {tool.calls}</span>
-                                                <span className="text-[11px] text-gray-500">responses: {tool.responses}</span>
+                                                <span className="text-[11px]" style={{ color: "#6b7280" }}>calls: {tool.calls}</span>
+                                                <span className="text-[11px]" style={{ color: "#6b7280" }}>responses: {tool.responses}</span>
                                                 <span
                                                     className={`text-[11px] px-2 py-0.5 rounded border ${tool.lastStatus === "success"
                                                         ? "bg-green-500/10 text-green-300 border-green-500/30"
                                                         : tool.lastStatus === "error"
                                                             ? "bg-red-500/10 text-red-300 border-red-500/30"
-                                                            : "bg-gray-800 text-gray-400 border-gray-700"
+                                                            : "border-[#5a5248]"
                                                         }`}
+                                                    style={tool.lastStatus === "unknown" ? { color: "#6b7280", background: "#f5f1e8" } : undefined}
                                                 >
                                                     {tool.lastStatus}
                                                 </span>
                                             </div>
                                         </div>
-                                        <p className="text-[11px] text-gray-400 mt-2 whitespace-pre-wrap">{tool.lastResponsePreview}</p>
+                                        <p className="text-[11px] mt-2 whitespace-pre-wrap" style={{ color: "#4b5563" }}>{tool.lastResponsePreview}</p>
                                     </li>
                                 ))}
                             </ul>
                         )}
-                    </div>
+                    </SurfaceCard>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-                        <h2 className="text-sm font-semibold text-white">Event Timeline</h2>
+                    <SurfaceCard className="space-y-4">
+                        <h2 className="text-sm font-semibold" style={{ color: "#1f2937" }}>Event Timeline</h2>
                         {events.length === 0 ? (
-                            <p className="text-xs text-gray-500">This run did not store ADK event trace as an array.</p>
+                            <p className="text-xs" style={{ color: "#6b7280" }}>This run did not store ADK event trace as an array.</p>
                         ) : (
                             <ul className="space-y-2">
                                 {events.map((event, idx) => (
-                                    <li key={event.id || idx} className="border border-gray-800 rounded-lg p-3 bg-gray-950/50">
+                                    <li key={event.id || idx} className="border rounded-lg p-3" style={{ borderColor: "#d6ccbf", background: "#fbf8f3" }}>
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="text-xs text-gray-300 font-medium">{event.author || "unknown"}</p>
-                                            <p className="text-[11px] text-gray-500">{formatTs(event.timestamp)}</p>
+                                            <p className="text-xs font-medium" style={{ color: "#1f2937" }}>{event.author || "unknown"}</p>
+                                            <p className="text-[11px]" style={{ color: "#6b7280" }}>{formatTs(event.timestamp)}</p>
                                         </div>
-                                        <p className="text-xs text-gray-400 mt-1">{summarizeEvent(event)}</p>
+                                        <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{summarizeEvent(event)}</p>
                                         {(event.content?.parts?.length || event.actions?.stateDelta) && (
                                             <details className="mt-2">
-                                                <summary className="text-[11px] text-cyan-400 cursor-pointer">Show full event JSON</summary>
-                                                <pre className="mt-2 text-[11px] text-gray-300 bg-black/40 border border-gray-800 rounded p-2 overflow-x-auto whitespace-pre-wrap">
-                                                    {JSON.stringify(event, null, 2)}
-                                                </pre>
+                                                <summary className="text-[11px] cursor-pointer" style={{ color: "#9a6f43" }}>Show full event JSON</summary>
+                                                <div className="mt-2">
+                                                    <JsonTreeNode value={event} />
+                                                </div>
                                             </details>
                                         )}
                                     </li>
                                 ))}
                             </ul>
                         )}
-                    </div>
+                    </SurfaceCard>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-                        <h2 className="text-sm font-semibold text-white">Raw Stored Result</h2>
+                    <SurfaceCard className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-sm font-semibold" style={{ color: "#1f2937" }}>Raw Stored Result</h2>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setRawResultMode("viewer")}
+                                    className={`tm-button px-2.5 py-1 text-xs ${rawResultMode === "viewer" ? "tm-button-primary" : ""}`}
+                                >
+                                    Viewer
+                                </button>
+                                <button
+                                    onClick={() => setRawResultMode("pretty")}
+                                    className={`tm-button px-2.5 py-1 text-xs ${rawResultMode === "pretty" ? "tm-button-primary" : ""}`}
+                                >
+                                    Pretty JSON
+                                </button>
+                            </div>
+                        </div>
                         <details>
-                            <summary className="text-xs text-cyan-400 cursor-pointer">Expand full result payload</summary>
-                            <pre className="mt-2 text-[11px] text-gray-300 bg-gray-950 border border-gray-800 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
-                                {JSON.stringify(run.result, null, 2)}
-                            </pre>
+                            <summary className="text-xs cursor-pointer" style={{ color: "#9a6f43" }}>Expand full result payload</summary>
+                            <div className="mt-2">
+                                {rawResultMode === "viewer" ? (
+                                    <JsonTreeNode value={run.result} />
+                                ) : (
+                                    <pre className="text-[11px] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-[#374151] bg-[#111827]" style={{ color: "#f3f4f6" }}>
+                                        {JSON.stringify(run.result, null, 2)}
+                                    </pre>
+                                )}
+                            </div>
                         </details>
-                    </div>
+                    </SurfaceCard>
                 </>
             )}
         </div>

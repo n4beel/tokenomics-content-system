@@ -1,6 +1,6 @@
 import {
   Controller, Get, Patch, Post,
-  Param, Body, UseGuards, HttpCode, HttpStatus,
+  Param, Body, UseGuards, HttpCode, HttpStatus, Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { PostsService } from './posts.service';
@@ -8,7 +8,7 @@ import { PostsService } from './posts.service';
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService) { }
 
   /** GET /api/posts/batch/:batchRunId */
   @Get('batch/:batchRunId')
@@ -42,5 +42,13 @@ export class PostsController {
   @Get('runs/recent')
   recentRuns() {
     return this.postsService.getRecentBatchRuns();
+  }
+
+  /** GET /api/posts/cms?limit=100 */
+  @Get('cms')
+  cmsPosts(@Query('limit') limit?: string) {
+    const parsed = Number(limit);
+    const normalized = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 100;
+    return this.postsService.getCmsPosts(normalized);
   }
 }
