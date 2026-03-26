@@ -4,12 +4,14 @@ FROM node:20-slim
 
 # Install Python, curl, then uv (which provides uvx)
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip curl \
+    python3 python3-pip python-is-python3 curl \
+    && ln -sf /usr/bin/python3 /python \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Add uv/uvx to PATH
 ENV PATH="/root/.local/bin:$PATH"
+ENV UV_PYTHON=/usr/bin/python3
 
 WORKDIR /app
 
