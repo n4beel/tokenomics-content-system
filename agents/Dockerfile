@@ -3,10 +3,10 @@
 FROM node:20-slim
 
 # Install Python, curl, then uv (which provides uvx)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python-is-python3 curl \
     && ln -sf /usr/bin/python3 /python \
-    && pip3 install --no-cache-dir chroma-mcp \
+    && python3 -m pip install --no-cache-dir --break-system-packages chroma-mcp \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
