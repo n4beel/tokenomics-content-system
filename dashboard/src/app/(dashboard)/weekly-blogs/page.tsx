@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const RUN_STATUS_FILTERS = ["all", "completed", "failed", "running"] as const;
 const RUNS_PAGE_SIZE = 10;
+const DRAFTS_PAGE_SIZE = 10;
 
 interface BatchRun {
     id: string;
@@ -34,6 +35,16 @@ interface CmsPost {
     createdAt: string;
 }
 
+interface CmsPostsResponse {
+    docs: any[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+}
+
 export default function WeeklyBlogsPage() {
     const { token } = useAuth();
     const [runs, setRuns] = useState<BatchRun[]>([]);
@@ -42,6 +53,9 @@ export default function WeeklyBlogsPage() {
     const [isTriggering, setIsTriggering] = useState(false);
     const [loading, setLoading] = useState(true);
     const [draftsLoading, setDraftsLoading] = useState(true);
+    const [draftsTotal, setDraftsTotal] = useState(0);
+    const [draftsPage, setDraftsPage] = useState(1);
+    const [draftsTotalPages, setDraftsTotalPages] = useState(1);
     const [runStatusFilter, setRunStatusFilter] = useState<(typeof RUN_STATUS_FILTERS)[number]>("all");
     const [runsPage, setRunsPage] = useState(1);
     const [autoRefresh, setAutoRefresh] = useState(false);
@@ -96,10 +110,12 @@ export default function WeeklyBlogsPage() {
 
         setDraftsLoading(true);
         try {
-            const response = await fetch(`${API}/api/posts/cms?limit=200&status=draft`, {
+            const response = await fetch(`${API}/api/posts/cms?page=${draftsPage}&pageSize=${DRAFTS_PAGE_SIZE}&status=draft`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const payload = response.ok ? ((await response.json()) as { docs?: any[] }) : { docs: [] };
+            const payload = response.ok
+                ? ((await response.json()) as Partial<CmsPostsResponse>)
+                : { docs: [], total: 0, totalPages: 1 };
             const docs = Array.isArray(payload.docs) ? payload.docs : [];
             const normalized: CmsPost[] = docs
                 .filter((d) => d && typeof d.id === "number" && d.title && d.slug)
@@ -112,12 +128,20 @@ export default function WeeklyBlogsPage() {
                 }))
                 .filter((d) => d.status === "draft");
             setDrafts(normalized);
+            setDraftsTotal(typeof payload.total === "number" ? payload.total : normalized.length);
+            setDraftsTotalPages(
+                typeof payload.totalPages === "number" && payload.totalPages > 0
+                    ? payload.totalPages
+                    : 1,
+            );
         } catch {
             setDrafts([]);
+            setDraftsTotal(0);
+            setDraftsTotalPages(1);
         } finally {
             setDraftsLoading(false);
         }
-    }, [token]);
+    }, [draftsPage, token]);
 
     useEffect(() => {
         void loadRuns();
@@ -130,6 +154,10 @@ export default function WeeklyBlogsPage() {
     useEffect(() => {
         setRunsPage(1);
     }, [runStatusFilter]);
+
+    useEffect(() => {
+        setDraftsPage(1);
+    }, [token]);
 
     useEffect(() => {
         if (!autoRefresh) return;
@@ -286,7 +314,7 @@ export default function WeeklyBlogsPage() {
                     <SurfaceCard className="p-0 overflow-hidden">
                         <div className="px-6 py-4 border-b border-[#3a332d] flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Recently Published Drafts</h3>
-                            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>via API CMS sync</span>
+                            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{draftsTotal} total drafts</span>
                         </div>
                         {draftsLoading ? (
                             <p className="p-6 text-sm" style={{ color: "var(--text-secondary)" }}>
@@ -298,7 +326,7 @@ export default function WeeklyBlogsPage() {
                             </p>
                         ) : (
                             <ul className="divide-y divide-[#3a332d]">
-                                {drafts.slice(0, 25).map((draft) => (
+                                {drafts.map((draft) => (
                                     <li key={draft.id} className="px-6 py-4 flex items-center justify-between gap-4">
                                         <div className="min-w-0">
                                             <p className="text-sm font-medium truncate">{draft.title}</p>
@@ -319,6 +347,27 @@ export default function WeeklyBlogsPage() {
                                 ))}
                             </ul>
                         )}
+                        <div className="px-6 py-3 border-t border-[#3a332d] flex items-center justify-between">
+                            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                                Page {draftsPage} of {draftsTotalPages}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setDraftsPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={draftsPage === 1 || draftsLoading}
+                                    className="tm-button px-2.5 py-1 text-xs disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setDraftsPage((prev) => Math.min(draftsTotalPages, prev + 1))}
+                                    disabled={draftsPage >= draftsTotalPages || draftsLoading}
+                                    className="tm-button px-2.5 py-1 text-xs disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
                     </SurfaceCard>
                 </div>
             </div>

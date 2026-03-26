@@ -44,15 +44,30 @@ export class PostsController {
     return this.postsService.getRecentBatchRuns();
   }
 
-  /** GET /api/posts/cms?limit=100&status=draft */
+  /** GET /api/posts/cms?page=1&pageSize=10&status=draft */
   @Get('cms')
-  cmsPosts(@Query('limit') limit?: string, @Query('status') status?: string) {
-    const parsed = Number(limit);
-    const normalized = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 100;
+  cmsPosts(
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+  ) {
+    const parsedPage = Number(page);
+    const normalizedPage = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+
+    const parsedPageSize = Number(pageSize);
+    const parsedLimit = Number(limit);
+    const normalizedPageSize = Number.isFinite(parsedPageSize) && parsedPageSize > 0
+      ? Math.floor(parsedPageSize)
+      : Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.floor(parsedLimit)
+        : 100;
+
     const normalizedStatus =
       typeof status === 'string' && status.trim().length > 0
         ? status.trim().toLowerCase()
         : undefined;
-    return this.postsService.getCmsPosts(normalized, normalizedStatus);
+
+    return this.postsService.getCmsPosts(normalizedPageSize, normalizedStatus, normalizedPage);
   }
 }

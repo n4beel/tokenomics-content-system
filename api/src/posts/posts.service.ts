@@ -178,7 +178,7 @@ export class PostsService {
     });
   }
 
-  async getCmsPosts(limit = 100, status?: string) {
+  async getCmsPosts(limit = 100, status?: string, page = 1) {
     const configured =
       this.config.get<string>('PAYLOAD_CMS_URL') ||
       this.config.get<string>('CMS_API_URL') ||
@@ -186,65 +186,32 @@ export class PostsService {
     const cmsApiBase = configured.replace(/\/+$/, '').replace(/\/api$/, '/api');
 
     const pageSize = Math.min(Math.max(Number(limit) || 100, 1), 200);
-    const docs: any[] = [];
-    let page = 1;
-    let hasNextPage = true;
-    let statusQueryMode: '_status' | 'status' | 'none' = status ? '_status' : 'none';
-
-    while (hasNextPage) {
-      const params = new URLSearchParams({
-        limit: String(pageSize),
-        page: String(page),
-      });
-      if (status && statusQueryMode !== 'none') {
-        params.append(`where[${statusQueryMode}][equals]`, status);
-      }
-      const url = `${cmsApiBase}/posts?${params.toString()}`;
-      let response: any;
-      try {
-        response = await this.cmsRequest(url);
-      } catch (error: any) {
-        const message = String(error?.message || '');
-        const invalidStatusPath =
-          /cannot be queried:\s*_status/i.test(message) ||
-          /cannot be queried:\s*status/i.test(message);
-
-        if (status && invalidStatusPath) {
-          if (statusQueryMode === '_status') {
-            statusQueryMode = 'status';
-            continue;
-          }
-          if (statusQueryMode === 'status') {
-            statusQueryMode = 'none';
-            continue;
-          }
-        }
-
-        throw error;
-      }
-      const pageDocs = Array.isArray(response?.docs) ? response.docs : [];
-      docs.push(...pageDocs);
-
-      hasNextPage = Boolean(response?.hasNextPage);
-      page += 1;
-
-      if (page > 100) {
-        // Prevent accidental infinite loops if CMS pagination metadata is malformed.
-        break;
-      }
+    const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
+    const params = new URLSearchParams({
+      limit: String(pageSize),
+      page: String(normalizedPage),
+    });
+    if (status) {
+      // This CMS exposes status; querying _status caused production 400 errors.
+      params.append('where[status][equals]', status);
     }
 
-    const filteredDocs =
-      status && statusQueryMode === 'none'
-        ? docs.filter((d) => {
-          const s = String(d?.status || d?._status || '').toLowerCase();
-          return s === status.toLowerCase();
-        })
-        : docs;
+    const url = `${cmsApiBase}/posts?${params.toString()}`;
+    const response = await this.cmsRequest(url);
+    const docs = Array.isArray(response?.docs) ? response.docs : [];
+    const totalDocs = Number(response?.totalDocs);
+    const totalPages = Number(response?.totalPages);
+    const hasNextPage = Boolean(response?.hasNextPage);
+    const hasPrevPage = Boolean(response?.hasPrevPage);
 
     return {
-      total: filteredDocs.length,
-      docs: filteredDocs,
+      total: Number.isFinite(totalDocs) ? totalDocs : docs.length,
+      docs,
+      page: normalizedPage,
+      pageSize,
+      totalPages: Number.isFinite(totalPages) ? totalPages : 1,
+      hasNextPage,
+      hasPrevPage,
     };
   }
 
