@@ -193,8 +193,8 @@ export default function BatchPage() {
                   key={day}
                   onClick={() => setActiveDay(day)}
                   className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${activeDay === day
-                      ? "border-indigo-500 text-white"
-                      : "border-transparent text-gray-500 hover:text-gray-300"
+                    ? "border-indigo-500 text-white"
+                    : "border-transparent text-gray-500 hover:text-gray-300"
                     }`}
                 >
                   {DAY_LABELS[day]}

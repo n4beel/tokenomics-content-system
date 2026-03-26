@@ -127,7 +127,7 @@ function parseDraftsIntoSlots(drafts: any, batchRunId: string) {
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /** Parse Quill drafts and persist as Post rows */
   async createPostsFromBatch(batchRunId: string, drafts: any): Promise<void> {

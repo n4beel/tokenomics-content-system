@@ -304,8 +304,8 @@ export default function VoiceNotesPage() {
                   onClick={recording ? stopRecording : startRecording}
                   disabled={uploading}
                   className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${recording
-                      ? "tm-button tm-button-primary ring-4 ring-indigo-500/30"
-                      : "tm-button tm-button-primary hover:scale-105"
+                    ? "tm-button tm-button-primary ring-4 ring-indigo-500/30"
+                    : "tm-button tm-button-primary hover:scale-105"
                     }`}
                 >
                   {recording ? (
@@ -344,8 +344,8 @@ export default function VoiceNotesPage() {
                 onDragLeave={() => setDragOver(false)}
                 onClick={() => !uploading && fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-xl py-8 flex flex-col items-center gap-2 cursor-pointer transition-all ${dragOver
-                    ? "border-indigo-400 bg-indigo-500/10"
-                    : "border-gray-700 hover:border-gray-600 hover:bg-gray-800/40"
+                  ? "border-indigo-400 bg-indigo-500/10"
+                  : "border-gray-700 hover:border-gray-600 hover:bg-gray-800/40"
                   }`}
               >
                 <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
