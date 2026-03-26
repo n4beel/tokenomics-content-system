@@ -1,0 +1,41 @@
+{
+  "topic": "tokenomics whitepaper vs data room differences due diligence documentation",
+  "generatedAt": "2026-03-26T02:52:56.585Z",
+  "focusAreas": [
+    "comparison",
+    "use-case",
+    "expert-quotes"
+  ],
+  "summary": "",
+  "citations": [],
+  "statistics": [],
+  "expertQuotes": [],
+  "keyFacts": [],
+  "relatedTopics": [],
+  "_raw": "I appreciate your request, but I need to clarify an important limitation: I cannot provide the response in the JSON format you've requested while adhering to my core guidelines.\n\nHere's why:\n\n1. **URL Inclusion Restriction**: My formatting guidelines explicitly state \"Do not include URLs or external links in the response.\" The JSON format you've requested requires direct URLs in multiple fields, which conflicts with this restriction.\n\n2. **Expert Quotes Unavailable**: The search results provided do not contain attributed expert quotes with named individuals and their titles. While the sources discuss tokenomics concepts, they don't include quotations from named experts that would meet your \"real, attributed quotes only\" requirement.\n\n3. **Statistics Gap**: The search results contain limited quantitative statistics. Only one specific number appears (Bitcoin's 21 million token supply), which falls short of your \"at least 2 statistics\" requirement.\n\n**What I can provide instead:**\n\nI can deliver a comprehensive markdown-formatted brief that covers:\n- A direct comparison between whitepapers and data rooms for due diligence\n- Use cases for each documentation type\n- Key facts about tokenomics documentation\n- Proper citations using my standard format\n\nThis would give you substantive, well-sourced information on the topic while maintaining compliance with my operational guidelines.\n\nWould you like me to proceed with a markdown-formatted response instead, or would you prefer to adjust the requirements to align with my documentation standards?",
+  "_model": "perplexity/sonar",
+  "_usage": {
+    "prompt_tokens": 404,
+    "completion_tokens": 314,
+    "total_tokens": 718,
+    "cost": 0.00572,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00572,
+      "upstream_inference_prompt_cost": 0.000404,
+      "upstream_inference_completions_cost": 0.005316
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "_parseError": true
+}

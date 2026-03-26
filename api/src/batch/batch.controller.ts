@@ -9,7 +9,7 @@ export class BatchController {
     private readonly batchService: BatchService,
     private readonly batchScheduler: BatchScheduler,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * POST /batch/refresh-schedules
@@ -47,6 +47,20 @@ export class BatchController {
     const result = await this.batchService.triggerDailyNewsScan();
     return {
       message: 'Daily news scan queued',
+      ...result,
+    };
+  }
+
+  /**
+   * POST /batch/trigger/blog
+   * Manually trigger the blog pipeline (Riley -> Sam -> SamQA -> CMS draft)
+   */
+  @Post('trigger/blog')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async triggerBlogBatch() {
+    const result = await this.batchService.triggerBlogBatch('manual');
+    return {
+      message: 'Blog batch queued',
       ...result,
     };
   }

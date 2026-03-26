@@ -1,130 +1,292 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { BATCH_QUEUE } from './constants';
+import {
+    BLOG_BATCH_QUEUE,
+    DAILY_NEWS_QUEUE,
+    WEEKLY_BATCH_QUEUE,
+} from './constants';
 import { BatchJobData } from './batch.service';
 import { AgentClientService } from '../agents/agent-client.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PostsService } from '../posts/posts.service';
 
-@Processor(BATCH_QUEUE)
-export class BatchProcessor extends WorkerHost {
-  private readonly logger = new Logger(BatchProcessor.name);
+abstract class BaseBatchProcessor extends WorkerHost {
+    protected abstract readonly logger: Logger;
 
-  constructor(
-    private readonly agentClient: AgentClientService,
-    private readonly prisma: PrismaService,
-    private readonly postsService: PostsService,
-  ) {
-    super();
-  }
+    constructor(
+        protected readonly agentClient: AgentClientService,
+        protected readonly prisma: PrismaService,
+        protected readonly postsService: PostsService,
+    ) {
+        super();
+    }
 
-  async process(job: Job<BatchJobData>): Promise<any> {
-    const { batchId, type, triggeredBy } = job.data;
-    this.logger.log(
-      `Processing job ${job.id}: ${type} (batch: ${batchId}, triggered by: ${triggeredBy})`,
-    );
+    protected async markRunning(job: Job<BatchJobData>) {
+        const { batchId, type, triggeredBy } = job.data;
 
-    // Persist batch run record
-    const batchRun = await this.prisma.batchRun.upsert({
-      where: { batchId },
-      create: {
-        batchId,
-        type,
-        status: 'running',
-        triggeredBy,
-        jobId: String(job.id),
-        startedAt: new Date(),
-      },
-      update: { status: 'running', jobId: String(job.id) },
-    });
+        await this.prisma.batchRun.upsert({
+            where: { batchId },
+            create: {
+                batchId,
+                type,
+                status: 'running',
+                triggeredBy,
+                jobId: String(job.id),
+                startedAt: new Date(),
+            },
+            update: { status: 'running', jobId: String(job.id) },
+        });
+    }
 
-    try {
-      let result: any;
-      switch (type) {
-        case 'weekly':
-          result = await this.processWeeklyBatch(job);
-          break;
-        case 'daily-news':
-          result = await this.processDailyNews(job);
-          break;
-        case 'blog':
-          result = await this.processBlogBatch(job);
-          break;
-        default:
-          throw new Error(`Unknown batch type: ${type}`);
-      }
+    protected async markCompleted(job: Job<BatchJobData>, result: any) {
+        this.assertValidResult(job, result);
 
-      const updated = await this.prisma.batchRun.update({
-        where: { batchId },
-        data: { status: 'completed', completedAt: new Date(), result },
-      });
+        const updated = await this.prisma.batchRun.update({
+            where: { batchId: job.data.batchId },
+            data: { status: 'completed', completedAt: new Date(), result },
+        });
 
-      // Parse Quill's drafts into structured Post records for weekly batches
-      if (type === 'weekly' && result) {
-        const drafts = this.extractDrafts(result);
-        if (drafts) {
-          this.logger.log(`[${batchId}] Parsing drafts into post records...`);
-          await this.postsService.createPostsFromBatch(updated.id, drafts);
+        if (job.data.type === 'weekly' && result) {
+            const drafts = this.extractDrafts(result);
+            if (drafts) {
+                this.logger.log(`[${job.data.batchId}] Parsing drafts into post records...`);
+                await this.postsService.createPostsFromBatch(updated.id, drafts);
+            }
         }
-      }
 
-      return result;
-    } catch (err: any) {
-      await this.prisma.batchRun.update({
-        where: { batchId },
-        data: { status: 'failed', completedAt: new Date(), error: String(err?.message || err) },
-      });
-      throw err;
-    }
-  }
-
-  /**
-   * Extract Quill's draft text from the ADK pipeline result.
-   * The result is an array of ADK events — find the last 'drafts' state delta.
-   */
-  private extractDrafts(result: any): string | null {
-    if (!result) return null;
-
-    // ADK /run returns array of events
-    if (Array.isArray(result)) {
-      // State deltas accumulate — find the last one with 'drafts'
-      for (let i = result.length - 1; i >= 0; i--) {
-        const delta = result[i]?.actions?.stateDelta;
-        if (delta?.drafts) return delta.drafts;
-      }
+        return result;
     }
 
-    // Fallback: result might be a state object directly
-    if (typeof result?.drafts === 'string') return result.drafts;
+    private parseJsonSafe(value: unknown): unknown {
+        if (typeof value !== 'string') return value;
+        try {
+            return JSON.parse(value);
+        } catch {
+            return value;
+        }
+    }
 
-    return null;
-  }
+    private collectToolFailures(result: any): string[] {
+        if (!Array.isArray(result)) return [];
 
-  private async processWeeklyBatch(job: Job<BatchJobData>) {
-    const { batchId } = job.data;
-    await job.updateProgress(10);
-    this.logger.log(`[${batchId}] Starting weekly batch pipeline...`);
-    const result = await this.agentClient.runWeeklyPipeline(batchId);
-    await job.updateProgress(100);
-    return result;
-  }
+        const failures: string[] = [];
 
-  private async processDailyNews(job: Job<BatchJobData>) {
-    const { batchId } = job.data;
-    await job.updateProgress(10);
-    this.logger.log(`[${batchId}] Starting daily news scan...`);
-    const result = await this.agentClient.runDailyNewsScan(batchId);
-    await job.updateProgress(100);
-    return { batchId, result };
-  }
+        for (const event of result) {
+            const parts = event?.content?.parts;
+            if (!Array.isArray(parts)) continue;
 
-  private async processBlogBatch(job: Job<BatchJobData>) {
-    const { batchId } = job.data;
-    await job.updateProgress(10);
-    this.logger.log(`[${batchId}] Starting blog pipeline...`);
-    const result = await this.agentClient.runBlogPipeline(batchId);
-    await job.updateProgress(100);
-    return result;
-  }
+            for (const part of parts) {
+                const fn = part?.functionResponse;
+                if (!fn?.name) continue;
+
+                const responsePayload = this.parseJsonSafe(fn.response);
+                const nestedResult =
+                    responsePayload && typeof responsePayload === 'object'
+                        ? this.parseJsonSafe((responsePayload as any).result)
+                        : null;
+
+                const candidates = [responsePayload, nestedResult].filter(Boolean);
+
+                for (const candidate of candidates) {
+                    if (!candidate || typeof candidate !== 'object') continue;
+
+                    const success = (candidate as any).success;
+                    const error = (candidate as any).error;
+
+                    if (success === false || (typeof error === 'string' && error.length > 0)) {
+                        failures.push(`${fn.name}: ${error || 'tool returned success=false'}`);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return failures;
+    }
+
+    private collectFinalState(result: any): Record<string, unknown> {
+        const state: Record<string, unknown> = {};
+        if (!Array.isArray(result)) return state;
+
+        for (const event of result) {
+            const delta = event?.actions?.stateDelta;
+            if (delta && typeof delta === 'object') {
+                Object.assign(state, delta);
+            }
+        }
+
+        return state;
+    }
+
+    private assertValidResult(job: Job<BatchJobData>, result: any) {
+        const failures = this.collectToolFailures(result);
+        if (failures.length > 0) {
+            throw new Error(`Pipeline tool failures detected: ${failures.slice(0, 5).join(' | ')}`);
+        }
+
+        const finalState = this.collectFinalState(result);
+
+        if (job.data.type === 'weekly') {
+            const drafts = finalState.drafts;
+            const qaOutput = typeof finalState.qa_result === 'string' ? finalState.qa_result : '';
+            const hasUsableDrafts =
+                (typeof drafts === 'string' && drafts.trim().length >= 200) ||
+                (Array.isArray(drafts) && drafts.length > 0) ||
+                (!!drafts && typeof drafts === 'object' && Object.keys(drafts as Record<string, unknown>).length > 0);
+
+            if (!hasUsableDrafts) {
+                throw new Error('Weekly pipeline completed without usable drafts output');
+            }
+            if (!/ALL_PASSED/i.test(qaOutput)) {
+                throw new Error('Weekly pipeline QA did not emit ALL_PASSED');
+            }
+            return;
+        }
+
+        if (job.data.type === 'blog') {
+            const blogOutput = typeof finalState.blog_output === 'string' ? finalState.blog_output : '';
+            const qaOutput = typeof finalState.blog_qa_result === 'string' ? finalState.blog_qa_result : '';
+
+            if (!blogOutput || blogOutput.trim().length < 400) {
+                throw new Error('Blog pipeline completed without usable blog_output content');
+            }
+
+            const unresolvedQuestion = /would you like|do you want me|should i/i.test(blogOutput);
+            if (unresolvedQuestion) {
+                throw new Error('Blog pipeline output ended in unresolved follow-up question');
+            }
+
+            if (!/ALL_PASSED/i.test(qaOutput)) {
+                throw new Error('Blog pipeline QA did not emit ALL_PASSED');
+            }
+        }
+    }
+
+    protected async markFailed(job: Job<BatchJobData>, err: unknown) {
+        await this.prisma.batchRun.update({
+            where: { batchId: job.data.batchId },
+            data: {
+                status: 'failed',
+                completedAt: new Date(),
+                error: String((err as any)?.message || err),
+            },
+        });
+    }
+
+    /**
+     * Extract Quill's draft text from ADK event results.
+     */
+    private extractDrafts(result: any): unknown | null {
+        if (!result) return null;
+
+        if (Array.isArray(result)) {
+            for (let i = result.length - 1; i >= 0; i--) {
+                const delta = result[i]?.actions?.stateDelta;
+                if (delta?.drafts) return delta.drafts;
+            }
+        }
+
+        if (result?.drafts !== undefined) return result.drafts;
+        return null;
+    }
+}
+
+@Processor(WEEKLY_BATCH_QUEUE)
+export class WeeklyBatchProcessor extends BaseBatchProcessor {
+    protected readonly logger = new Logger(WeeklyBatchProcessor.name);
+
+    constructor(
+        agentClient: AgentClientService,
+        prisma: PrismaService,
+        postsService: PostsService,
+    ) {
+        super(agentClient, prisma, postsService);
+    }
+
+    async process(job: Job<BatchJobData>): Promise<any> {
+        const { batchId, type, triggeredBy } = job.data;
+        this.logger.log(
+            `Processing job ${job.id}: ${type} (batch: ${batchId}, triggered by: ${triggeredBy})`,
+        );
+
+        await this.markRunning(job);
+
+        try {
+            await job.updateProgress(10);
+            this.logger.log(`[${batchId}] Starting weekly batch pipeline...`);
+            const result = await this.agentClient.runWeeklyPipeline(batchId);
+            await job.updateProgress(100);
+            return await this.markCompleted(job, result);
+        } catch (err) {
+            await this.markFailed(job, err);
+            throw err;
+        }
+    }
+}
+
+@Processor(BLOG_BATCH_QUEUE)
+export class BlogBatchProcessor extends BaseBatchProcessor {
+    protected readonly logger = new Logger(BlogBatchProcessor.name);
+
+    constructor(
+        agentClient: AgentClientService,
+        prisma: PrismaService,
+        postsService: PostsService,
+    ) {
+        super(agentClient, prisma, postsService);
+    }
+
+    async process(job: Job<BatchJobData>): Promise<any> {
+        const { batchId, type, triggeredBy } = job.data;
+        this.logger.log(
+            `Processing job ${job.id}: ${type} (batch: ${batchId}, triggered by: ${triggeredBy})`,
+        );
+
+        await this.markRunning(job);
+
+        try {
+            await job.updateProgress(10);
+            this.logger.log(`[${batchId}] Starting blog pipeline...`);
+            const result = await this.agentClient.runBlogPipeline(batchId);
+            await job.updateProgress(100);
+            return await this.markCompleted(job, result);
+        } catch (err) {
+            await this.markFailed(job, err);
+            throw err;
+        }
+    }
+}
+
+@Processor(DAILY_NEWS_QUEUE)
+export class DailyNewsProcessor extends BaseBatchProcessor {
+    protected readonly logger = new Logger(DailyNewsProcessor.name);
+
+    constructor(
+        agentClient: AgentClientService,
+        prisma: PrismaService,
+        postsService: PostsService,
+    ) {
+        super(agentClient, prisma, postsService);
+    }
+
+    async process(job: Job<BatchJobData>): Promise<any> {
+        const { batchId, type, triggeredBy } = job.data;
+        this.logger.log(
+            `Processing job ${job.id}: ${type} (batch: ${batchId}, triggered by: ${triggeredBy})`,
+        );
+
+        await this.markRunning(job);
+
+        try {
+            await job.updateProgress(10);
+            this.logger.log(`[${batchId}] Starting daily news scan...`);
+            const result = await this.agentClient.runDailyNewsScan(batchId);
+            await job.updateProgress(100);
+            return await this.markCompleted(job, { batchId, result });
+        } catch (err) {
+            await this.markFailed(job, err);
+            throw err;
+        }
+    }
 }

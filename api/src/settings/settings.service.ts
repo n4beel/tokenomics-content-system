@@ -11,6 +11,9 @@ export interface SystemConfigData {
   weeklyBatchDay: number;    // 0=Sun … 6=Sat
   weeklyBatchHour: number;
   weeklyBatchMinute: number;
+  blogBatchDay: number;      // 0=Sun … 6=Sat
+  blogBatchHour: number;
+  blogBatchMinute: number;
   dailyNewsHour: number;
   dailyNewsMinute: number;
   vnResearchWeight: number;  // 0–100: % weight given to Tony's voice notes vs Riley's research
@@ -27,6 +30,9 @@ const DEFAULTS: SystemConfigData = {
   weeklyBatchDay: 6,
   weeklyBatchHour: 5,
   weeklyBatchMinute: 0,
+  blogBatchDay: 2,
+  blogBatchHour: 8,
+  blogBatchMinute: 30,
   dailyNewsHour: 7,
   dailyNewsMinute: 0,
   vnResearchWeight: 80,
@@ -35,7 +41,7 @@ const DEFAULTS: SystemConfigData = {
 
 @Injectable()
 export class SettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getConfig(): Promise<SystemConfigData> {
     const row = await this.prisma.systemConfig.findUnique({
@@ -68,5 +74,11 @@ export class SettingsService {
   async getDailyNewsCron(): Promise<string> {
     const cfg = await this.getConfig();
     return `${cfg.dailyNewsMinute} ${cfg.dailyNewsHour} * * 1-5`;
+  }
+
+  /** Cron expression for the blog batch based on current config */
+  async getBlogCron(): Promise<string> {
+    const cfg = await this.getConfig();
+    return `${cfg.blogBatchMinute} ${cfg.blogBatchHour} * * ${cfg.blogBatchDay}`;
   }
 }

@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Libre_Baskerville, Libre_Franklin } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-libre-baskerville",
+});
+
+const libreFranklin = Libre_Franklin({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-libre-franklin",
+});
 
 export const metadata: Metadata = {
   title: "Tokenomics Content System",
@@ -16,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-950 text-gray-100`}>
+    <html lang="en">
+      <body className={`${libreBaskerville.variable} ${libreFranklin.variable} tm-shell`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

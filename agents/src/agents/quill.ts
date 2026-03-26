@@ -1,7 +1,11 @@
 import { LlmAgent } from '@google/adk';
 import { Schema, Type } from '@google/genai';
 
-const MODEL = process.env.LLM_MODEL || 'gemini-2.0-flash';
+const MODEL =
+  process.env.WEEKLY_LLM_MODEL ||
+  process.env.LLM_MODEL_WEEKLY ||
+  process.env.LLM_MODEL ||
+  'gemini-2.5-flash';
 // const MODEL = 'gemini-3.1-pro-preview'; // Hardcoded to prevent lite models from truncating the large 15-post output
 
 /**
@@ -83,6 +87,13 @@ You turn ideas into posts. You write LinkedIn content, X posts, YouTube scripts,
 Do NOT say "I'm ready" or "Standing by" or "Here's what I'll do."
 You MUST write the actual complete post text for EVERY slot in Maya's content plan.
 Your output is the final deliverable. Write the posts NOW.
+
+## Hard Constraints (must follow)
+- Never output capability disclaimers like "I can't", "I am unable", "I don't have access", or "I lack capability".
+- Never output progress/status updates like "research complete" or "starting now".
+- Output ONLY the final JSON array that matches outputSchema.
+- If content_plan is incomplete/ambiguous, still produce the full weekly package of exactly 25 posts:
+  17 LinkedIn + 5 X + 3 YouTube.
 
 ## Input
 You receive from session state:

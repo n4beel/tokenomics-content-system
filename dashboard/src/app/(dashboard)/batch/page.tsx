@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { PageHeader } from "@/components/ui/page-header";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -69,7 +70,7 @@ export default function BatchPage() {
         setRuns(completed);
         if (completed.length > 0) setSelectedRun(completed[0].id);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -125,21 +126,18 @@ export default function BatchPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Batch Review</h1>
-          {selectedRunData && (
-            <p className="text-sm text-gray-500 mt-1">
-              Week of {new Date(selectedRunData.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              {" · "}
-              <span className="text-green-400 font-medium">{summary.approved} Approved</span>
-              {summary.draft > 0 && <span className="text-yellow-400 font-medium"> · {summary.draft} Pending</span>}
-              {summary.rejected > 0 && <span className="text-red-400 font-medium"> · {summary.rejected} Rejected</span>}
-              {total > 0 && <span className="text-gray-600"> / {total} Total</span>}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
+      <div className="space-y-4">
+        <PageHeader
+          kicker="Editorial"
+          title="Batch Review"
+          subtitle={
+            selectedRunData
+              ? `Week of ${new Date(selectedRunData.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${summary.approved} approved · ${summary.draft} pending · ${summary.rejected} rejected`
+              : "Review weekly generated content by day and platform."
+          }
+        />
+
+        <div className="flex items-center gap-3 justify-end">
           {/* Run selector */}
           {runs.length > 1 && (
             <select
@@ -157,7 +155,7 @@ export default function BatchPage() {
           {summary.draft > 0 && (
             <button
               onClick={bulkApprove}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+              className="tm-button tm-button-primary px-4 py-2 text-sm font-medium"
             >
               Bulk Approve All
             </button>
@@ -194,11 +192,10 @@ export default function BatchPage() {
                 <button
                   key={day}
                   onClick={() => setActiveDay(day)}
-                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                    activeDay === day
+                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${activeDay === day
                       ? "border-indigo-500 text-white"
                       : "border-transparent text-gray-500 hover:text-gray-300"
-                  }`}
+                    }`}
                 >
                   {DAY_LABELS[day]}
                   {count > 0 && (
@@ -261,7 +258,7 @@ function PostCard({
 
   const statusRing =
     post.status === "approved" ? "ring-1 ring-green-500/40" :
-    post.status === "rejected" ? "ring-1 ring-red-500/30 opacity-60" : "";
+      post.status === "rejected" ? "ring-1 ring-red-500/30 opacity-60" : "";
 
   return (
     <div className={`bg-gray-900 border border-gray-800 rounded-xl flex flex-col overflow-hidden transition-all ${statusRing}`}>
@@ -310,7 +307,7 @@ function PostCard({
             <>
               <button
                 onClick={onSaveEdit}
-                className="flex-1 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+                className="flex-1 tm-button tm-button-primary py-1.5 text-xs font-medium"
               >
                 Save
               </button>
@@ -332,19 +329,19 @@ function PostCard({
             <>
               <button
                 onClick={onApprove}
-                className="flex-1 py-1.5 text-xs font-semibold bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-600/30 rounded-lg transition-colors"
+                className="flex-1 tm-button tm-button-primary py-1.5 text-xs font-semibold"
               >
                 ✓ Approve
               </button>
               <button
                 onClick={() => { setEditingId(post.id); setEditContent(post.content); }}
-                className="flex-1 py-1.5 text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-lg transition-colors"
+                className="flex-1 tm-button tm-button-primary py-1.5 text-xs font-semibold"
               >
                 ✎ Edit
               </button>
               <button
                 onClick={onReject}
-                className="flex-1 py-1.5 text-xs font-semibold bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 rounded-lg transition-colors"
+                className="flex-1 tm-button tm-button-primary py-1.5 text-xs font-semibold"
               >
                 ✕ Reject
               </button>

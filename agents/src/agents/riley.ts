@@ -2,7 +2,12 @@ import { LlmAgent, MCPToolset } from '@google/adk';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-const MODEL = process.env.LLM_MODEL || 'gemini-2.0-flash';
+const MODEL =
+  process.env.RILEY_LLM_MODEL ||
+  process.env.WEEKLY_LLM_MODEL ||
+  process.env.LLM_MODEL_WEEKLY ||
+  process.env.LLM_MODEL ||
+  'gemini-2.5-flash';
 // Resolve data dir to an absolute path — relative paths break when ADK
 // api_server runs from a different cwd than the agents folder.
 const __dir = fileURLToPath(new URL('.', import.meta.url));

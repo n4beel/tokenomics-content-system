@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { SurfaceCard } from "@/components/ui/surface-card";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
-const STATUS_STYLES: Record<string, string> = {
-  queued: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  running: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  completed: "bg-green-500/10 text-green-400 border-green-500/20",
-  failed: "bg-red-500/10 text-red-400 border-red-500/20",
-};
 
 interface BatchRun {
   id: string;
@@ -35,7 +31,7 @@ export default function AnalyticsPage() {
     })
       .then(r => r.ok ? r.json() : [])
       .then(setRuns)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -46,17 +42,18 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-white">Analytics</h2>
-        <p className="text-gray-400 mt-1">Content performance metrics and batch history</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        kicker="Analytics"
+        title="Weekly Performance Snapshot"
+        subtitle="Batch throughput, run traces, and execution confidence signals."
+      />
 
       {/* Batch Run History */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+      <SurfaceCard className="overflow-hidden p-0">
+        <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white">Batch Run History</h3>
-          <span className="text-xs text-gray-600">{runs.length} runs</span>
+          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{runs.length} runs</span>
         </div>
 
         {loading ? (
@@ -64,68 +61,65 @@ export default function AnalyticsPage() {
         ) : runs.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500 text-sm">No batch runs yet</p>
-            <p className="text-gray-600 text-xs mt-1">
+            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
               Go to{" "}
-              <a href="/settings" className="text-indigo-400 hover:underline">Settings</a> to trigger a batch
+              <a href="/settings" className="hover:underline" style={{ color: "var(--gold-deep)" }}>Settings</a> to trigger a batch
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-800">
+          <ul className="divide-y divide-gray-700">
             {runs.map(run => (
-              <li key={run.id} className="px-6 py-4 hover:bg-gray-800/40 transition-colors">
+              <li key={run.id} className="px-6 py-4 hover:bg-gray-800/60 transition-colors">
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-white capitalize">
                         {run.type.replace(/-/g, " ")}
                       </p>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded border ${STATUS_STYLES[run.status] ?? "bg-gray-800 text-gray-400 border-gray-700"}`}>
-                        {run.status}
-                      </span>
+                      <StatusBadge status={run.status} />
                     </div>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <p className="text-xs text-gray-500 font-mono">{run.batchId}</p>
+                      <p className="text-xs font-mono" style={{ color: "#4f4944" }}>{run.batchId}</p>
                       <span className="text-gray-700">·</span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs" style={{ color: "#4f4944" }}>
                         {new Date(run.startedAt).toLocaleString("en-US", {
                           month: "short", day: "numeric",
                           hour: "2-digit", minute: "2-digit",
                         })}
                       </p>
                       <span className="text-gray-700">·</span>
-                      <p className="text-xs text-gray-600 capitalize">{run.triggeredBy}</p>
+                      <p className="text-xs capitalize" style={{ color: "var(--text-secondary)" }}>{run.triggeredBy}</p>
                     </div>
                     {run.error && (
-                      <p className="text-xs text-red-400 mt-1 truncate max-w-lg">{run.error}</p>
+                      <p className="text-xs mt-1 truncate max-w-lg" style={{ color: "#8f4b3e" }}>{run.error}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0 space-y-1">
                     {duration(run) && (
-                      <p className="text-xs text-gray-600">{duration(run)}</p>
+                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{duration(run)}</p>
                     )}
-                    {run.status === "completed" && (
-                      <a
-                        href="/batch"
-                        className="text-xs text-indigo-400 hover:underline block"
-                      >
-                        Review →
-                      </a>
-                    )}
+                    <a
+                      href={`/runs/${encodeURIComponent(run.batchId)}`}
+                      className="text-xs hover:underline block"
+                      style={{ color: "var(--gold-deep)" }}
+                    >
+                      {run.status === "completed" ? "Review Trace ->" : "View Trace ->"}
+                    </a>
                   </div>
                 </div>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </SurfaceCard>
 
       {/* Publishing metrics placeholder */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-        <p className="text-gray-500 text-lg">📈 Publishing Analytics</p>
-        <p className="text-gray-600 text-sm mt-2">
+      <SurfaceCard className="p-12 text-center">
+        <p className="text-lg">Publishing Analytics</p>
+        <p className="text-sm mt-2" style={{ color: "var(--text-secondary)" }}>
           Engagement metrics will appear after content is published to channels
         </p>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

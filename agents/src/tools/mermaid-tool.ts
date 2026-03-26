@@ -3,11 +3,7 @@ import { z } from 'zod';
 import { execFile } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SEO_ROOT = path.resolve(__dirname, '../../../../tokenomics-seo');
-const SCRIPT = path.join(SEO_ROOT, 'scripts', 'mermaid-render.mjs');
+import { resolveNodeExec, resolveSeoRoot } from './runtime-paths.js';
 
 const mermaidParams = z.object({
   mermaidSource: z.string().describe('The Mermaid diagram source code (e.g. flowchart TD, pie chart, etc.)'),
@@ -22,6 +18,9 @@ export const mermaidTool = new FunctionTool({
   parameters: mermaidParams as any,
   execute: async (args: any) => {
     const { mermaidSource, slug, diagramName, outputDir } = args;
+    const seoRoot = resolveSeoRoot(['scripts/mermaid-render.mjs']);
+    const nodeExec = resolveNodeExec();
+    const script = path.join(seoRoot, 'scripts', 'mermaid-render.mjs');
 
     // Write .mmd source to file
     const tmpDir = path.join(outputDir, 'assets', 'diagrams');
@@ -32,8 +31,8 @@ export const mermaidTool = new FunctionTool({
     fs.writeFileSync(mmdPath, mermaidSource);
 
     return new Promise((resolve) => {
-      execFile('node', [SCRIPT, 'render', mmdPath, '--slug', slug, '--name', diagramName, '--output', outputDir], {
-        cwd: SEO_ROOT,
+      execFile(nodeExec, [script, 'render', mmdPath, '--slug', slug, '--name', diagramName, '--output', outputDir], {
+        cwd: seoRoot,
         env: { ...process.env },
         timeout: 60_000,
       }, (error, stdout, stderr) => {

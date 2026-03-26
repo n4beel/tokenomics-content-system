@@ -130,7 +130,7 @@ export class PostsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Parse Quill drafts and persist as Post rows */
-  async createPostsFromBatch(batchRunId: string, drafts: string): Promise<void> {
+  async createPostsFromBatch(batchRunId: string, drafts: any): Promise<void> {
     const slots = parseDraftsIntoSlots(drafts, batchRunId);
     if (slots.length === 0) return;
 

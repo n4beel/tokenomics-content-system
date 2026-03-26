@@ -174,12 +174,18 @@ export class KimiLlm extends BaseLlm {
     for (const tool of tools) {
       if (tool.functionDeclarations) {
         for (const fn of tool.functionDeclarations) {
+          // ADK functionDeclarations use Gemini-flavored schema types (OBJECT/STRING).
+          // Convert to JSON Schema so OpenAI-compatible providers don't ignore tools.
+          const parameters = fn.parameters
+            ? this.geminiSchemaToJsonSchema(fn.parameters as Record<string, any>)
+            : { type: 'object', properties: {} };
+
           openAITools.push({
             type: 'function',
             function: {
               name: fn.name,
               description: fn.description ?? '',
-              parameters: fn.parameters ?? { type: 'object', properties: {} },
+              parameters,
             },
           });
         }

@@ -1,0 +1,97 @@
+{
+  "topic": "tokenomics investor documentation data rooms 2026 venture capital due diligence",
+  "generatedAt": "2026-03-26T02:52:51.151Z",
+  "focusAreas": [
+    "statistics",
+    "expert-quotes",
+    "industry-trends"
+  ],
+  "summary": "In 2026, tokenomics investor documentation in VC due diligence emphasizes KPI-locked supply releases, 12-24 month treasury runways, and detailed modeling of sell pressure and unlocks in data rooms. Institutional investors prioritize structural risks, transparent utility, and audited contracts amid trends toward rewarding real usage and tokenization of private deals.",
+  "citations": [
+    {
+      "text": "MegaETH has put 53% of the total supply of MEGA tokens locked behind a “KPI Program”",
+      "source": "Bankless",
+      "url": "https://www.bankless.com/read/a-fresh-start-for-tokenomics-in-2026",
+      "type": "statistic"
+    },
+    {
+      "text": "Unaudited contracts carried 91% higher exploit risk in 2026 data",
+      "source": "Earnpark",
+      "url": "https://earnpark.com/en/posts/ido-investing-in-2026-lessons-from-50-projects",
+      "type": "statistic"
+    },
+    {
+      "text": "Institutional investors in 2026 look beyond visuals. They evaluate structural risk: sell pressure, unlock convergence, liquidity depth",
+      "source": "DataDrivenInvestor on Medium",
+      "url": "https://medium.datadriveninvestor.com/tokenomics-calculator-2026-how-to-model-sell-pressure-unlocks-and-investor-red-flags-before-tge-9e6137f005e5",
+      "type": "fact"
+    },
+    {
+      "text": "Strong token projects take budgeting like a real company. In 2026, this generally means a 12-24 month runway",
+      "source": "Blockchain App Factory",
+      "url": "https://www.blockchainappfactory.com/blog/token-launches-2026-what-successful-projects-are-doing-differently/",
+      "type": "fact"
+    }
+  ],
+  "statistics": [
+    {
+      "stat": "53% of MegaETH's total MEGA token supply locked behind KPI Program",
+      "source": "Bankless",
+      "url": "https://www.bankless.com/read/a-fresh-start-for-tokenomics-in-2026"
+    },
+    {
+      "stat": "Unaudited contracts carried 91% higher exploit risk in 2026 data",
+      "source": "Earnpark",
+      "url": "https://earnpark.com/en/posts/ido-investing-in-2026-lessons-from-50-projects"
+    }
+  ],
+  "expertQuotes": [
+    {
+      "quote": "Retail investors in 2026 are becoming increasingly discerning. Capital is being redirected towards infrastructure projects, AI integration, and structured private crypto funding, moving away from meme-based launches.",
+      "name": "Michael Wrubel",
+      "title": "Crypto Analyst",
+      "source": "Cryptopolitan"
+    }
+  ],
+  "keyFacts": [
+    "VC due diligence in 2026 scrutinizes tokenomics data rooms for KPI-based unlocks, sell pressure models, and liquidity depth to assess structural risks.",
+    "Successful 2026 token launches feature 12-24 month treasury runways covering audits, listings, and growth to signal long-term commitment.",
+    "Investors favor projects rewarding real usage, retention, and quality liquidity over hype-driven emissions.",
+    "Tokenization of private deals and presales evolves to offer utility-focused access, concentrating capital in AI infra, RWAs, and scalable networks.",
+    "KPI programs like MegaETH's tie new supply to ecosystem growth metrics such as TVL, decentralization stages, and performance.",
+    "Institutional focus shifts to transparent documentation beyond visuals, including unlock schedules and investor staking incentives.",
+    "Unaudited smart contracts pose 91% higher exploit risk, pushing due diligence toward rigorous audit verification in data rooms."
+  ],
+  "relatedTopics": [
+    "KPI-based token unlock mechanisms in Web3",
+    "VC tokenomics modeling tools for 2026",
+    "Tokenization of real-world assets and private equity",
+    "DeFi treasury management best practices",
+    "Smart contract audit standards for IDOs"
+  ],
+  "_raw": "{\n  \"summary\": \"In 2026, tokenomics investor documentation in VC due diligence emphasizes KPI-locked supply releases, 12-24 month treasury runways, and detailed modeling of sell pressure and unlocks in data rooms. Institutional investors prioritize structural risks, transparent utility, and audited contracts amid trends toward rewarding real usage and tokenization of private deals.\",\n  \"citations\": [    {\n      \"text\": \"MegaETH has put 53% of the total supply of MEGA tokens locked behind a “KPI Program”\",\n      \"source\": \"Bankless\",\n      \"url\": \"https://www.bankless.com/read/a-fresh-start-for-tokenomics-in-2026\",\n      \"type\": \"statistic\"\n    },\n    {\n      \"text\": \"Unaudited contracts carried 91% higher exploit risk in 2026 data\",\n      \"source\": \"Earnpark\",\n      \"url\": \"https://earnpark.com/en/posts/ido-investing-in-2026-lessons-from-50-projects\",\n      \"type\": \"statistic\"\n    },\n    {\n      \"text\": \"Institutional investors in 2026 look beyond visuals. They evaluate structural risk: sell pressure, unlock convergence, liquidity depth\",\n      \"source\": \"DataDrivenInvestor on Medium\",\n      \"url\": \"https://medium.datadriveninvestor.com/tokenomics-calculator-2026-how-to-model-sell-pressure-unlocks-and-investor-red-flags-before-tge-9e6137f005e5\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"Strong token projects take budgeting like a real company. In 2026, this generally means a 12-24 month runway\",\n      \"source\": \"Blockchain App Factory\",\n      \"url\": \"https://www.blockchainappfactory.com/blog/token-launches-2026-what-successful-projects-are-doing-differently/\",\n      \"type\": \"fact\"\n    }\n  ],\n  \"statistics\": [    {\n      \"stat\": \"53% of MegaETH's total MEGA token supply locked behind KPI Program\",\n      \"source\": \"Bankless\",\n      \"url\": \"https://www.bankless.com/read/a-fresh-start-for-tokenomics-in-2026\"\n    },\n    {\n      \"stat\": \"Unaudited contracts carried 91% higher exploit risk in 2026 data\",\n      \"source\": \"Earnpark\",\n      \"url\": \"https://earnpark.com/en/posts/ido-investing-in-2026-lessons-from-50-projects\"\n    }\n  ],\n  \"expertQuotes\": [    {\n      \"quote\": \"Retail investors in 2026 are becoming increasingly discerning. Capital is being redirected towards infrastructure projects, AI integration, and structured private crypto funding, moving away from meme-based launches.\",\n      \"name\": \"Michael Wrubel\",\n      \"title\": \"Crypto Analyst\",\n      \"source\": \"Cryptopolitan\"\n    }\n  ],\n  \"keyFacts\": [    \"VC due diligence in 2026 scrutinizes tokenomics data rooms for KPI-based unlocks, sell pressure models, and liquidity depth to assess structural risks.\",\n    \"Successful 2026 token launches feature 12-24 month treasury runways covering audits, listings, and growth to signal long-term commitment.\",\n    \"Investors favor projects rewarding real usage, retention, and quality liquidity over hype-driven emissions.\",\n    \"Tokenization of private deals and presales evolves to offer utility-focused access, concentrating capital in AI infra, RWAs, and scalable networks.\",\n    \"KPI programs like MegaETH's tie new supply to ecosystem growth metrics such as TVL, decentralization stages, and performance.\",\n    \"Institutional focus shifts to transparent documentation beyond visuals, including unlock schedules and investor staking incentives.\",\n    \"Unaudited smart contracts pose 91% higher exploit risk, pushing due diligence toward rigorous audit verification in data rooms.\"\n  ],\n  \"relatedTopics\": [    \"KPI-based token unlock mechanisms in Web3\",\n    \"VC tokenomics modeling tools for 2026\",\n    \"Tokenization of real-world assets and private equity\",\n    \"DeFi treasury management best practices\",\n    \"Smart contract audit standards for IDOs\"\n  ]\n}",
+  "_model": "perplexity/sonar",
+  "_usage": {
+    "prompt_tokens": 407,
+    "completion_tokens": 891,
+    "total_tokens": 1298,
+    "cost": 0.0063,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0063,
+      "upstream_inference_prompt_cost": 0.000407,
+      "upstream_inference_completions_cost": 0.005893
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

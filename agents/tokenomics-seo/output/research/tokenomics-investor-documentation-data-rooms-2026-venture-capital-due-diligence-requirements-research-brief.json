@@ -1,0 +1,98 @@
+{
+  "topic": "tokenomics investor documentation data rooms 2026 venture capital due diligence requirements",
+  "generatedAt": "2026-03-26T02:27:38.068Z",
+  "focusAreas": [
+    "statistics",
+    "expert-quotes",
+    "investor-requirements",
+    "data-room-standards",
+    "due-diligence-trends"
+  ],
+  "summary": "In 2026, venture capital due diligence for Web3 tokenomics mandates comprehensive investor data rooms with financial models, vesting schedules, sell pressure analysis, Monte Carlo simulations, and compliance packs. Standards emphasize post-TGE unlock visuals, scenario modeling, and red-flag checks to assess sustainability, with exchanges and VCs requiring audits, legal opinions, and liquidity planning for listings.",
+  "citations": [
+    {
+      "text": "A tokenomics data room checklist covers five categories: token design artifacts, financial models including Monte Carlo simulations.",
+      "source": "Tokenomics.net",
+      "url": "https://tokenomics.net/blog/tokenomics-data-room-checklist/",
+      "type": "fact"
+    },
+    {
+      "text": "The InnMind Tokenomics Calculator 2026 includes a 12-point automated red flag checker aligned with institutional VC due diligence.",
+      "source": "InnMind Blog",
+      "url": "https://blog.innmind.com/tokenomics-calculator-2026/",
+      "type": "fact"
+    },
+    {
+      "text": "Crypto infrastructure expected to grow at 35-40% CAGR, driven by DeFi, asset tokenization, play-to-earn games, and fintech integrations.",
+      "source": "Blockchain App Factory",
+      "url": "https://www.blockchainappfactory.com/blog/tokenomics-compliance-listings-crypto-token-launch-guide/",
+      "type": "statistic"
+    },
+    {
+      "text": "Tokenomics is now economic architecture. Investors underwrite token projects like businesses, testing assumptions and modeling downside cases.",
+      "source": "Magna Blog",
+      "url": "https://www.magna.so/blog-posts/is-your-token-launch-ready-for-2026",
+      "type": "expert-quote"
+    }
+  ],
+  "statistics": [
+    {
+      "stat": "Crypto infrastructure, token platforms, and digital asset services growing at 35-40% CAGR",
+      "source": "Blockchain App Factory",
+      "url": "https://www.blockchainappfactory.com/blog/tokenomics-compliance-listings-crypto-token-launch-guide/"
+    },
+    {
+      "stat": "On-Chain Data Analytics Subscriptions cost 80% of revenue in 2026 for tokenomics consulting",
+      "source": "Financial Models Lab",
+      "url": "https://financialmodelslab.com/blogs/profitability/tokenomics-consulting"
+    }
+  ],
+  "expertQuotes": [
+    {
+      "quote": "Tokenomics is now economic architecture. Investors underwrite tokens projects like businesses, testing assumptions and modeling downside cases. The bar has been raised.",
+      "name": "Not specified",
+      "title": "Magna Blog Author",
+      "source": "https://www.magna.so/blog-posts/is-your-token-launch-ready-for-2026"
+    }
+  ],
+  "keyFacts": [
+    "Tokenomics data rooms must include token design artifacts, financial models with Monte Carlo simulations, vesting schedules, and unlock visuals[1]",
+    "Investor-grade models require 60-month cumulative unlock schedules, monthly sell pressure, volume absorption ratios, and overhang windows at 30/90/180/365 days[2]",
+    "Exchange data rooms need smart contract audits, legal opinions, tokenomics packs, team governance, and traction metrics[3]",
+    "VC due diligence emphasizes scenario modeling (base/bear/bull), concentration analysis, and wallet distribution transparency[3][6]",
+    "Vesting schedules should extend over multiple years to align incentives, with significant allocations for community and ecosystem[6]",
+    "Post-TGE layers like liquidity depth and red-flag checks determine project survival[2]",
+    "Compliance-first architecture is essential, treating token launches like regulated financial product rollouts[3]"
+  ],
+  "relatedTopics": [
+    "Token vesting and cliff schedule best practices 2026",
+    "VC investment trends in Web3 token projects",
+    "Smart contract audit standards for token launches",
+    "Liquidity planning and market maker strategies for DEX/CEX"
+  ],
+  "_raw": "{\n  \"summary\": \"In 2026, venture capital due diligence for Web3 tokenomics mandates comprehensive investor data rooms with financial models, vesting schedules, sell pressure analysis, Monte Carlo simulations, and compliance packs. Standards emphasize post-TGE unlock visuals, scenario modeling, and red-flag checks to assess sustainability, with exchanges and VCs requiring audits, legal opinions, and liquidity planning for listings.\",\n  \"citations\": [    {\n      \"text\": \"A tokenomics data room checklist covers five categories: token design artifacts, financial models including Monte Carlo simulations.\",\n      \"source\": \"Tokenomics.net\",\n      \"url\": \"https://tokenomics.net/blog/tokenomics-data-room-checklist/\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"The InnMind Tokenomics Calculator 2026 includes a 12-point automated red flag checker aligned with institutional VC due diligence.\",\n      \"source\": \"InnMind Blog\",\n      \"url\": \"https://blog.innmind.com/tokenomics-calculator-2026/\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"Crypto infrastructure expected to grow at 35-40% CAGR, driven by DeFi, asset tokenization, play-to-earn games, and fintech integrations.\",\n      \"source\": \"Blockchain App Factory\",\n      \"url\": \"https://www.blockchainappfactory.com/blog/tokenomics-compliance-listings-crypto-token-launch-guide/\",\n      \"type\": \"statistic\"\n    },\n    {\n      \"text\": \"Tokenomics is now economic architecture. Investors underwrite token projects like businesses, testing assumptions and modeling downside cases.\",\n      \"source\": \"Magna Blog\",\n      \"url\": \"https://www.magna.so/blog-posts/is-your-token-launch-ready-for-2026\",\n      \"type\": \"expert-quote\"\n    }\n  ],\n  \"statistics\": [    {\n      \"stat\": \"Crypto infrastructure, token platforms, and digital asset services growing at 35-40% CAGR\",\n      \"source\": \"Blockchain App Factory\",\n      \"url\": \"https://www.blockchainappfactory.com/blog/tokenomics-compliance-listings-crypto-token-launch-guide/\"\n    },\n    {\n      \"stat\": \"On-Chain Data Analytics Subscriptions cost 80% of revenue in 2026 for tokenomics consulting\",\n      \"source\": \"Financial Models Lab\",\n      \"url\": \"https://financialmodelslab.com/blogs/profitability/tokenomics-consulting\"\n    }\n  ],\n  \"expertQuotes\": [    {\n      \"quote\": \"Tokenomics is now economic architecture. Investors underwrite tokens projects like businesses, testing assumptions and modeling downside cases. The bar has been raised.\",\n      \"name\": \"Not specified\",\n      \"title\": \"Magna Blog Author\",\n      \"source\": \"https://www.magna.so/blog-posts/is-your-token-launch-ready-for-2026\"\n    }\n  ],\n  \"keyFacts\": [    \"Tokenomics data rooms must include token design artifacts, financial models with Monte Carlo simulations, vesting schedules, and unlock visuals[1]\",\n    \"Investor-grade models require 60-month cumulative unlock schedules, monthly sell pressure, volume absorption ratios, and overhang windows at 30/90/180/365 days[2]\",\n    \"Exchange data rooms need smart contract audits, legal opinions, tokenomics packs, team governance, and traction metrics[3]\",\n    \"VC due diligence emphasizes scenario modeling (base/bear/bull), concentration analysis, and wallet distribution transparency[3][6]\",\n    \"Vesting schedules should extend over multiple years to align incentives, with significant allocations for community and ecosystem[6]\",\n    \"Post-TGE layers like liquidity depth and red-flag checks determine project survival[2]\",\n    \"Compliance-first architecture is essential, treating token launches like regulated financial product rollouts[3]\"\n  ],\n  \"relatedTopics\": [    \"Token vesting and cliff schedule best practices 2026\",\n    \"VC investment trends in Web3 token projects\",\n    \"Smart contract audit standards for token launches\",\n    \"Liquidity planning and market maker strategies for DEX/CEX\"\n  ]\n}",
+  "_model": "perplexity/sonar",
+  "_usage": {
+    "prompt_tokens": 421,
+    "completion_tokens": 863,
+    "total_tokens": 1284,
+    "cost": 0.00628,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00628,
+      "upstream_inference_prompt_cost": 0.000421,
+      "upstream_inference_completions_cost": 0.005859
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

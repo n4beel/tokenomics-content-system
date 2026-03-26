@@ -5,16 +5,21 @@
   "type": "module",
   "main": "src/agent.ts",
   "scripts": {
-    "dev": "nodemon -e ts -x \"npx adk web\"",
+    "dev": "npm run dev:api",
+    "dev:api": "nodemon --watch src --ext ts,js,mjs,json --signal SIGTERM -x \"npx adk api_server src --host 0.0.0.0 --port ${PORT:-8000}\"",
+    "dev:web": "nodemon --watch src --ext ts,js,mjs,json --signal SIGTERM -x \"npx adk web src --host 0.0.0.0 --port ${PORT:-8000}\"",
     "dev:cli": "npx adk run src/agent.ts",
     "start": "npm run start:prod",
-    "start:prod": "npx adk api_server --host 0.0.0.0 --port ${PORT:-8000}",
+    "start:prod": "npx adk api_server src --host 0.0.0.0 --port ${PORT:-8000}",
     "ingest": "uv run --with chromadb python src/scripts/ingest.py",
     "ingest:dry-run": "uv run --with chromadb python src/scripts/ingest.py --dry-run"
   },
   "dependencies": {
     "@google/adk": "^0.5.0",
     "@google/genai": "^1.0.0",
+    "@mermaid-js/mermaid-cli": "^11.12.0",
+    "puppeteer": "^23.11.1",
+    "sharp": "^0.34.5",
     "zod": "^3.24.0"
   },
   "devDependencies": {

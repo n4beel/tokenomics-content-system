@@ -1,0 +1,98 @@
+{
+  "topic": "tokenomics whitepaper vs data room differences investor documentation comparison",
+  "generatedAt": "2026-03-26T02:27:44.868Z",
+  "focusAreas": [
+    "statistics",
+    "expert-quotes",
+    "whitepaper-limitations",
+    "data-room-advantages",
+    "documentation-hierarchy"
+  ],
+  "summary": "Tokenomics whitepapers provide public overviews of project vision, token distribution, and incentives, but lack interactive data and sensitive details, limiting depth for investors. Data rooms offer secure, comprehensive access to financial models, audits, and compliance docs, forming the top of investor documentation hierarchy for due diligence.",
+  "citations": [
+    {
+      "text": "A tokenomics data room packages token design, financial models, and compliance docs into one investor-ready package.",
+      "source": "Tokenomics.net",
+      "url": "https://tokenomics.net/blog/what-is-a-tokenomics-data-room/",
+      "type": "fact"
+    },
+    {
+      "text": "A virtual data room (VDR) for blockchain startups organizes sensitive materials like tokenomics, smart contract audits, technical whitepapers, financial models, and legal agreements.",
+      "source": "Papermark",
+      "url": "https://www.papermark.com/data-room-blockchain",
+      "type": "fact"
+    },
+    {
+      "text": "The single most important resource for analyzing a project's tokenomics is its whitepaper, detailing purpose, supply schedule, distribution, and incentives.",
+      "source": "CoW DAO",
+      "url": "https://cow.fi/learn/a-comprehensive-guide-to-understanding-tokenomics",
+      "type": "fact"
+    },
+    {
+      "text": "A large allocation to community and ecosystem development (35-45% is a healthy benchmark) shows commitment to growth.",
+      "source": "ChainUp",
+      "url": "https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/",
+      "type": "statistic"
+    }
+  ],
+  "statistics": [
+    {
+      "stat": "35-45% allocation to community and ecosystem development is a healthy benchmark for sustainable tokenomics.",
+      "source": "ChainUp",
+      "url": "https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/"
+    },
+    {
+      "stat": "Standard vesting schedule: four-year period with a one-year cliff.",
+      "source": "ChainUp",
+      "url": "https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/"
+    }
+  ],
+  "expertQuotes": [
+    {
+      "quote": "The difference between a sustainable project and a short-lived experiment often comes down to one critical factor: tokenomics.",
+      "name": "Not specified",
+      "title": "ChainUp Blog Author",
+      "source": "ChainUp Blog - Tokenomics 101"
+    }
+  ],
+  "keyFacts": [
+    "Whitepapers are public documents focusing on token purpose, supply, distribution, incentives, and roadmap but often lack verifiable data or sensitive financials.",
+    "Whitepaper limitations include static content, potential vagueness on vesting/compliance, and no interactive models for investor scrutiny.",
+    "Data rooms provide secure access to dynamic financial models, audits, legal docs, and compliance materials beyond whitepaper scope.",
+    "Data room advantages: controlled sharing, IP protection, real-time updates, and comprehensive due diligence for serious investors.",
+    "Documentation hierarchy: Whitepaper (public marketing) < Pitch deck < Data room (private, detailed investor access).",
+    "Investors expect data rooms for token projects to validate whitepaper claims with models and proofs.",
+    "Tokenomics in whitepapers must detail allocation (e.g., team/investors/community) and utility for sustainability assessment."
+  ],
+  "relatedTopics": [
+    "Best practices for tokenomics data room setup",
+    "Vesting schedules in Web3 token design",
+    "Due diligence checklists for crypto investors",
+    "Evolution of token whitepapers post-2008"
+  ],
+  "_raw": "{\n  \"summary\": \"Tokenomics whitepapers provide public overviews of project vision, token distribution, and incentives, but lack interactive data and sensitive details, limiting depth for investors. Data rooms offer secure, comprehensive access to financial models, audits, and compliance docs, forming the top of investor documentation hierarchy for due diligence.\",\n  \"citations\": [    {\n      \"text\": \"A tokenomics data room packages token design, financial models, and compliance docs into one investor-ready package.\",\n      \"source\": \"Tokenomics.net\",\n      \"url\": \"https://tokenomics.net/blog/what-is-a-tokenomics-data-room/\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"A virtual data room (VDR) for blockchain startups organizes sensitive materials like tokenomics, smart contract audits, technical whitepapers, financial models, and legal agreements.\",\n      \"source\": \"Papermark\",\n      \"url\": \"https://www.papermark.com/data-room-blockchain\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"The single most important resource for analyzing a project's tokenomics is its whitepaper, detailing purpose, supply schedule, distribution, and incentives.\",\n      \"source\": \"CoW DAO\",\n      \"url\": \"https://cow.fi/learn/a-comprehensive-guide-to-understanding-tokenomics\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"A large allocation to community and ecosystem development (35-45% is a healthy benchmark) shows commitment to growth.\",\n      \"source\": \"ChainUp\",\n      \"url\": \"https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/\",\n      \"type\": \"statistic\"\n    }\n  ],\n  \"statistics\": [    {\n      \"stat\": \"35-45% allocation to community and ecosystem development is a healthy benchmark for sustainable tokenomics.\",\n      \"source\": \"ChainUp\",\n      \"url\": \"https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/\"\n    },\n    {\n      \"stat\": \"Standard vesting schedule: four-year period with a one-year cliff.\",\n      \"source\": \"ChainUp\",\n      \"url\": \"https://www.chainup.com/blog/tokenomics-101-how-to-spot-cryptocurrencies-built-to-last/\"\n    }\n  ],\n  \"expertQuotes\": [    {\n      \"quote\": \"The difference between a sustainable project and a short-lived experiment often comes down to one critical factor: tokenomics.\",\n      \"name\": \"Not specified\",\n      \"title\": \"ChainUp Blog Author\",\n      \"source\": \"ChainUp Blog - Tokenomics 101\"\n    }\n  ],\n  \"keyFacts\": [    \"Whitepapers are public documents focusing on token purpose, supply, distribution, incentives, and roadmap but often lack verifiable data or sensitive financials.\",\n    \"Whitepaper limitations include static content, potential vagueness on vesting/compliance, and no interactive models for investor scrutiny.\",\n    \"Data rooms provide secure access to dynamic financial models, audits, legal docs, and compliance materials beyond whitepaper scope.\",\n    \"Data room advantages: controlled sharing, IP protection, real-time updates, and comprehensive due diligence for serious investors.\",\n    \"Documentation hierarchy: Whitepaper (public marketing) < Pitch deck < Data room (private, detailed investor access).\",\n    \"Investors expect data rooms for token projects to validate whitepaper claims with models and proofs.\",\n    \"Tokenomics in whitepapers must detail allocation (e.g., team/investors/community) and utility for sustainability assessment.\"\n  ],\n  \"relatedTopics\": [    \"Best practices for tokenomics data room setup\",\n    \"Vesting schedules in Web3 token design\",\n    \"Due diligence checklists for crypto investors\",\n    \"Evolution of token whitepapers post-2008\"\n  ]\n}",
+  "_model": "perplexity/sonar",
+  "_usage": {
+    "prompt_tokens": 416,
+    "completion_tokens": 811,
+    "total_tokens": 1227,
+    "cost": 0.00623,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00623,
+      "upstream_inference_prompt_cost": 0.000416,
+      "upstream_inference_completions_cost": 0.005814
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

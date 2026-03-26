@@ -2,11 +2,12 @@ import { FunctionTool } from '@google/adk';
 import { z } from 'zod';
 import { execFile } from 'child_process';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SEO_ROOT = path.resolve(__dirname, '../../../../tokenomics-seo');
-const SCRIPT = path.join(SEO_ROOT, 'scripts', 'research-pipeline.mjs');
+import {
+  buildToolEnv,
+  resolveNodeExec,
+  resolveSeoRoot,
+  resolveWritableOutputDir,
+} from './runtime-paths.js';
 
 const researchParams = z.object({
   topic: z.string().describe('The topic or keyword to research'),
@@ -20,14 +21,22 @@ export const researchTool = new FunctionTool({
   parameters: researchParams as any,
   execute: async (args: any) => {
     const { topic, focus, outputDir } = args;
+    const seoRoot = resolveSeoRoot(['scripts/research-pipeline.mjs']);
+    const nodeExec = resolveNodeExec();
+    const script = path.join(seoRoot, 'scripts', 'research-pipeline.mjs');
+    const safeOutputDir = resolveWritableOutputDir(
+      outputDir || path.join(seoRoot, 'output', 'research'),
+      path.join(seoRoot, 'output', 'research'),
+    );
+    const toolEnv = buildToolEnv(seoRoot);
     const cmdArgs = ['research', topic];
     if (focus) cmdArgs.push('--focus', focus);
-    if (outputDir) cmdArgs.push('--output', outputDir);
+    cmdArgs.push('--output', safeOutputDir);
 
     return new Promise((resolve) => {
-      execFile('node', [SCRIPT, ...cmdArgs], {
-        cwd: SEO_ROOT,
-        env: { ...process.env },
+      execFile(nodeExec, [script, ...cmdArgs], {
+        cwd: seoRoot,
+        env: toolEnv,
         timeout: 120_000,
       }, (error, stdout, stderr) => {
         if (error) {

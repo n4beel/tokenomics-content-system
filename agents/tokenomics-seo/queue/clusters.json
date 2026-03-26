@@ -1,0 +1,279 @@
+{
+  "clusters": [
+    {
+      "id": "data-room",
+      "name": "Tokenomics Data Room",
+      "category": "Data Room & Documentation",
+      "description": "Own the 'tokenomics data room' term. Zero competition. Maps directly to our flagship product.",
+      "priority": "P0",
+      "pillar": {
+        "title": "What Is a Tokenomics Data Room? (And Why Investors Expect One)",
+        "slug": "what-is-a-tokenomics-data-room",
+        "keyword": "tokenomics data room",
+        "status": "generated"
+      },
+      "posts": [
+        {
+          "title": "The Complete Tokenomics Data Room Checklist",
+          "slug": "tokenomics-data-room-checklist",
+          "keyword": "tokenomics data room checklist",
+          "status": "generated"
+        },
+        {
+          "title": "Why Investors Are Demanding Tokenomics Data Rooms in 2026",
+          "slug": "investors-demanding-tokenomics-data-rooms",
+          "keyword": "tokenomics investor documentation",
+          "status": "queued"
+        },
+        {
+          "title": "Tokenomics Data Room vs. Whitepaper: What's the Difference?",
+          "slug": "tokenomics-data-room-vs-whitepaper",
+          "keyword": "tokenomics whitepaper vs data room",
+          "status": "queued"
+        },
+        {
+          "title": "How to Prepare a Tokenomics Data Room for Your Fundraise",
+          "slug": "prepare-tokenomics-data-room-fundraise",
+          "keyword": "tokenomics fundraising documentation",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "rwa",
+      "name": "Real-World Asset Tokenization",
+      "category": "RWA Tokenomics",
+      "description": "RWA was the top-performing crypto narrative in 2025 (185.8% avg returns). Tokenomics.net already has an RWA case study. This is our strategic focus.",
+      "priority": "P0",
+      "pillar": {
+        "title": "RWA Tokenomics: Designing Token Models for Real-World Assets",
+        "slug": "rwa-tokenomics-design",
+        "keyword": "RWA tokenomics",
+        "status": "generated"
+      },
+      "posts": [
+        {
+          "title": "Tokenizing Real Estate: Tokenomics Design Considerations",
+          "slug": "tokenizing-real-estate-tokenomics",
+          "keyword": "real estate tokenization tokenomics",
+          "status": "queued"
+        },
+        {
+          "title": "Tokenizing Commodities: From Gold to Carbon Credits",
+          "slug": "tokenizing-commodities-gold-carbon",
+          "keyword": "commodity tokenization",
+          "status": "queued"
+        },
+        {
+          "title": "RWA Compliance: Building Tokenomics That Satisfy Regulators",
+          "slug": "rwa-compliance-tokenomics",
+          "keyword": "RWA token compliance",
+          "status": "queued"
+        },
+        {
+          "title": "Revenue Models for RWA Tokens: How Real-World Assets Generate Yield",
+          "slug": "rwa-token-revenue-models",
+          "keyword": "RWA token revenue",
+          "status": "queued"
+        },
+        {
+          "title": "RWA vs. Traditional Securitization: Why Tokenization Wins",
+          "slug": "rwa-vs-traditional-securitization",
+          "keyword": "RWA vs securitization",
+          "status": "queued"
+        },
+        {
+          "title": "The RWA Tokenization Stack: Infrastructure Founders Need to Know",
+          "slug": "rwa-tokenization-infrastructure-stack",
+          "keyword": "RWA tokenization infrastructure",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "token-standards",
+      "name": "Token Standards & Types",
+      "category": "Token Standards",
+      "description": "Founders, lawyers, and developers search these terms when evaluating how to tokenize. Technical but accessible definitions that position us as the authority.",
+      "priority": "P0",
+      "pillar": {
+        "title": "Token Standards Explained: A Founder's Guide",
+        "slug": "token-standards-explained",
+        "keyword": "token standards",
+        "status": "generated"
+      },
+      "posts": [
+        {
+          "title": "ERC-3643: The Standard for Compliant Security Tokens",
+          "slug": "erc-3643-compliant-security-tokens",
+          "keyword": "ERC-3643",
+          "status": "generated"
+        },
+        {
+          "title": "ERC-1400: Security Token Standard for Regulated Assets",
+          "slug": "erc-1400-security-token-standard",
+          "keyword": "ERC-1400",
+          "status": "queued"
+        },
+        {
+          "title": "ERC-20 vs ERC-721 vs ERC-1155: Choosing the Right Token Standard",
+          "slug": "erc-20-vs-erc-721-vs-erc-1155",
+          "keyword": "ERC-20 vs ERC-721",
+          "status": "queued"
+        },
+        {
+          "title": "Security Token vs. Utility Token: What Founders Need to Know",
+          "slug": "security-token-vs-utility-token",
+          "keyword": "security token vs utility token",
+          "status": "queued"
+        },
+        {
+          "title": "STO vs. ICO vs. IDO: Token Launch Structures Compared",
+          "slug": "sto-vs-ico-vs-ido",
+          "keyword": "STO vs ICO vs IDO",
+          "status": "queued"
+        },
+        {
+          "title": "ERC-4626: Tokenized Vaults and Yield-Bearing Tokens",
+          "slug": "erc-4626-tokenized-vaults",
+          "keyword": "ERC-4626",
+          "status": "queued"
+        },
+        {
+          "title": "Multi-Chain Token Standards: Bridging EVM and Non-EVM Ecosystems",
+          "slug": "multi-chain-token-standards",
+          "keyword": "multi-chain token standards",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "design-fundamentals",
+      "name": "Tokenomics Design Fundamentals",
+      "category": "Tokenomics Strategy",
+      "description": "Core mid-funnel content for founders starting their token journey. Existing posts slot into this cluster.",
+      "priority": "P1",
+      "pillar": {
+        "title": "Tokenomics Design: The Founder's Complete Guide",
+        "slug": "tokenomics-design-guide",
+        "keyword": "tokenomics design",
+        "status": "queued"
+      },
+      "posts": [
+        {
+          "title": "Token Allocation Best Practices: Benchmarks from 80+ Projects",
+          "slug": "token-allocation-best-practices",
+          "keyword": "token allocation best practices",
+          "status": "queued"
+        },
+        {
+          "title": "Revenue-First Tokenomics: Why Cash Flow Beats Clever Mechanics",
+          "slug": "revenue-first-tokenomics",
+          "keyword": "revenue tokenomics",
+          "status": "queued"
+        },
+        {
+          "title": "Market Cap as Constraint: A Theory of Constraints Approach to Token Design",
+          "slug": "market-cap-constraint-token-design",
+          "keyword": "token market cap",
+          "status": "queued"
+        },
+        {
+          "title": "Deflationary vs. Inflationary Tokenomics: Which Model Fits Your Project?",
+          "slug": "deflationary-vs-inflationary-tokenomics",
+          "keyword": "deflationary vs inflationary tokenomics",
+          "status": "queued"
+        },
+        {
+          "title": "Token Value Accrual: How Tokens Capture and Retain Value",
+          "slug": "token-value-accrual-mechanisms",
+          "keyword": "token value accrual",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "compliance",
+      "name": "Compliance & Regulation",
+      "category": "Compliance & Regulation",
+      "description": "Growing regulatory demand (MiCA through July 2026), almost no competitors covering tokenomics + compliance intersection.",
+      "priority": "P1",
+      "pillar": {
+        "title": "MiCA-Ready Tokenomics: A Founder's Guide to EU Token Compliance",
+        "slug": "mica-ready-tokenomics",
+        "keyword": "MiCA tokenomics",
+        "status": "queued"
+      },
+      "posts": [
+        {
+          "title": "How MiCA Changes Token Vesting and Distribution Requirements",
+          "slug": "mica-vesting-distribution-requirements",
+          "keyword": "MiCA vesting requirements",
+          "status": "queued"
+        },
+        {
+          "title": "Tokenomics Documentation for Compliance: What Your Legal Team Needs",
+          "slug": "tokenomics-documentation-compliance",
+          "keyword": "tokenomics compliance documentation",
+          "status": "queued"
+        },
+        {
+          "title": "How Regulation Shapes Token Design: Lessons from 2025-2026",
+          "slug": "regulation-shapes-token-design",
+          "keyword": "token regulation design",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "buyers-journey",
+      "name": "Buyer's Journey",
+      "category": "Tokenomics Consulting",
+      "description": "Bottom-of-funnel content for people actively comparing and buying tokenomics consulting services.",
+      "priority": "P1",
+      "pillar": null,
+      "posts": [
+        {
+          "title": "How to Choose a Tokenomics Consultant",
+          "slug": "how-to-choose-tokenomics-consultant",
+          "keyword": "tokenomics consultant",
+          "status": "queued"
+        },
+        {
+          "title": "How Much Does Tokenomics Consulting Cost?",
+          "slug": "tokenomics-consulting-cost",
+          "keyword": "tokenomics consulting cost",
+          "status": "queued"
+        },
+        {
+          "title": "Pre-TGE Checklist: Everything You Need Before Token Launch",
+          "slug": "pre-tge-checklist",
+          "keyword": "pre-TGE checklist",
+          "status": "queued"
+        },
+        {
+          "title": "Tokenomics Audit: What It Covers and When You Need One",
+          "slug": "tokenomics-audit-guide",
+          "keyword": "tokenomics audit",
+          "status": "queued"
+        },
+        {
+          "title": "Tokenomics Design: DIY vs. Hiring a Consultant",
+          "slug": "tokenomics-diy-vs-consultant",
+          "keyword": "tokenomics consulting vs DIY",
+          "status": "queued"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    "Data Room & Documentation",
+    "RWA Tokenomics",
+    "Token Standards",
+    "Tokenomics Strategy",
+    "Token Design",
+    "DeFi Analysis",
+    "Compliance & Regulation",
+    "Tokenomics Consulting"
+  ]
+}

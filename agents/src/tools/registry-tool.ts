@@ -2,11 +2,7 @@ import { FunctionTool } from '@google/adk';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SEO_ROOT = path.resolve(__dirname, '../../../../tokenomics-seo');
-const REGISTRY_PATH = path.join(SEO_ROOT, 'registry', 'published-posts.json');
+import { resolveSeoRoot } from './runtime-paths.js';
 
 const registryParams = z.object({
   category: z.string().optional().describe('Filter by category name'),
@@ -19,9 +15,11 @@ export const registryTool = new FunctionTool({
   parameters: registryParams as any,
   execute: async (args: any) => {
     const { category, limit } = args;
+    const seoRoot = resolveSeoRoot(['registry/published-posts.json']);
+    const registryPath = path.join(seoRoot, 'registry', 'published-posts.json');
 
     try {
-      const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
+      const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
       let posts = Array.isArray(registry) ? registry : (registry.posts || []);
 
       if (category) {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { PageHeader } from "@/components/ui/page-header";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -55,7 +56,7 @@ function Waveform({ active }: { active: boolean }) {
           key={i}
           className="w-1 rounded-full transition-all"
           style={{
-            backgroundColor: active ? "#818cf8" : "#374151",
+            backgroundColor: active ? "#b8956e" : "#7a736d",
             height: active ? `${8 + ((i * 13 + 7) % 24)}px` : "4px",
             animation: active ? "pulse-bar 0.9s ease-in-out infinite" : "none",
             animationDelay: `${(i * 40) % 600}ms`,
@@ -92,15 +93,15 @@ function AudioPreview({ src, label }: { src: string; label: string }) {
       <button
         id="preview-play"
         onClick={toggle}
-        className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 transition-all"
+        className="w-9 h-9 flex-shrink-0 flex items-center justify-center tm-button tm-button-primary transition-all"
       >
         {playing ? (
           <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+            <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         ) : (
           <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
+            <path d="M8 5v14l11-7z" />
           </svg>
         )}
       </button>
@@ -283,10 +284,11 @@ export default function VoiceNotesPage() {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Voice Notes</h1>
-        <p className="text-sm text-gray-500 mt-1">Record or upload audio — AI transcribes for the content pipeline</p>
-      </div>
+      <PageHeader
+        kicker="Research Input"
+        title="Voice Notes"
+        subtitle="Record or upload audio and keep transcripts tied to the pipeline context."
+      />
 
       <div className="flex gap-6 flex-1 min-h-0">
         {/* ── LEFT 60% ─────────────────────────────────────────────────────── */}
@@ -301,19 +303,18 @@ export default function VoiceNotesPage() {
                   id="record-btn"
                   onClick={recording ? stopRecording : startRecording}
                   disabled={uploading}
-                  className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${
-                    recording
-                      ? "bg-red-500 hover:bg-red-400 ring-4 ring-red-500/30"
-                      : "bg-indigo-600 hover:bg-indigo-500 hover:scale-105"
-                  }`}
+                  className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${recording
+                      ? "tm-button tm-button-primary ring-4 ring-indigo-500/30"
+                      : "tm-button tm-button-primary hover:scale-105"
+                    }`}
                 >
                   {recording ? (
                     <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <rect x="6" y="6" width="12" height="12" rx="2"/>
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
                     </svg>
                   ) : (
                     <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 1a4 4 0 014 4v6a4 4 0 01-8 0V5a4 4 0 014-4zm0 16a7 7 0 007-7h2a9 9 0 01-8 8.94V21h-2v-2.06A9 9 0 013 10h2a7 7 0 007 7z"/>
+                      <path d="M12 1a4 4 0 014 4v6a4 4 0 01-8 0V5a4 4 0 014-4zm0 16a7 7 0 007-7h2a9 9 0 01-8 8.94V21h-2v-2.06A9 9 0 013 10h2a7 7 0 007 7z" />
                     </svg>
                   )}
                 </button>
@@ -342,14 +343,13 @@ export default function VoiceNotesPage() {
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onClick={() => !uploading && fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl py-8 flex flex-col items-center gap-2 cursor-pointer transition-all ${
-                  dragOver
+                className={`border-2 border-dashed rounded-xl py-8 flex flex-col items-center gap-2 cursor-pointer transition-all ${dragOver
                     ? "border-indigo-400 bg-indigo-500/10"
                     : "border-gray-700 hover:border-gray-600 hover:bg-gray-800/40"
-                }`}
+                  }`}
               >
                 <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                 </svg>
                 <p className="text-sm text-gray-400">
                   {dragOver ? "Drop to upload" : "Drag & drop or click to browse"}
@@ -382,10 +382,10 @@ export default function VoiceNotesPage() {
                     <button
                       id="discard-btn"
                       onClick={discard}
-                      className="flex items-center gap-1.5 text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-3 py-1.5 rounded-lg transition-all"
+                      className="flex items-center gap-1.5 text-xs font-medium tm-button tm-button-primary px-3 py-1.5"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       Discard
                     </button>
@@ -411,13 +411,13 @@ export default function VoiceNotesPage() {
                   id="submit-btn"
                   onClick={submit}
                   disabled={uploading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="w-full tm-button tm-button-primary disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm py-3 flex items-center justify-center gap-2"
                 >
                   {uploading ? (
                     <>
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                       Uploading & transcribing…
                     </>
@@ -441,7 +441,7 @@ export default function VoiceNotesPage() {
             <h2 className="text-sm font-semibold text-white mb-3">Voice Note History</h2>
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><path strokeLinecap="round" d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
               </svg>
               <input
                 type="text" placeholder="Search transcripts…" value={search}
@@ -487,17 +487,16 @@ export default function VoiceNotesPage() {
                       <button
                         id={`play-${note.id}`}
                         onClick={() => toggleHistPlay(note)}
-                        className={`p-1.5 rounded-lg transition-all ${
-                          playingId === note.id ? "text-indigo-400 bg-indigo-500/20" : "text-gray-500 hover:text-white hover:bg-gray-700"
-                        }`}
+                        className={`p-1.5 rounded-lg transition-all ${playingId === note.id ? "text-indigo-400 bg-indigo-500/20" : "text-gray-500 hover:text-white hover:bg-gray-700"
+                          }`}
                       >
                         {playingId === note.id ? (
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+                            <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
                           </svg>
                         ) : (
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
+                            <path d="M8 5v14l11-7z" />
                           </svg>
                         )}
                       </button>
@@ -507,7 +506,7 @@ export default function VoiceNotesPage() {
                         className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m5 0V4h4v2"/>
+                          <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6m5 0V4h4v2" />
                         </svg>
                       </button>
                     </div>

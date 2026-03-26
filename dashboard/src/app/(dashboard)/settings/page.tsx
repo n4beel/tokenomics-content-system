@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { PageHeader } from "@/components/ui/page-header";
+import { SurfaceCard } from "@/components/ui/surface-card";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -15,6 +17,9 @@ interface Config {
   weeklyBatchDay: number;
   weeklyBatchHour: number;
   weeklyBatchMinute: number;
+  blogBatchDay: number;
+  blogBatchHour: number;
+  blogBatchMinute: number;
   dailyNewsHour: number;
   dailyNewsMinute: number;
   vnResearchWeight: number;
@@ -104,7 +109,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [newPillarName, setNewPillarName] = useState("");
-  const [triggerLoading, setTriggerLoading] = useState<"weekly" | "news" | null>(null);
+  const [triggerLoading, setTriggerLoading] = useState<"weekly" | "news" | "blog" | null>(null);
   const [triggerMsg, setTriggerMsg] = useState<string | null>(null);
 
   const fetchConfig = useCallback(async () => {
@@ -139,7 +144,7 @@ export default function SettingsPage() {
       fetch(`${API}/api/batch/refresh-schedules`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {/* non-critical */});
+      }).catch(() => {/* non-critical */ });
     } catch {
       setSaveMsg({ text: "Failed to save settings", ok: false });
     } finally {
@@ -161,18 +166,23 @@ export default function SettingsPage() {
     setConfig({ ...config, pillars });
   };
 
-  const trigger = async (type: "weekly" | "news") => {
+  const trigger = async (type: "weekly" | "news" | "blog") => {
     setTriggerLoading(type);
     setTriggerMsg(null);
     try {
-      const path = type === "weekly" ? "trigger/weekly" : "trigger/daily-news";
+      const path =
+        type === "weekly"
+          ? "trigger/weekly"
+          : type === "news"
+            ? "trigger/daily-news"
+            : "trigger/blog";
       const res = await fetch(`${API}/api/batch/${path}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       setTriggerMsg(
-        `✓ ${type === "weekly" ? "Weekly batch" : "News scan"} queued — Batch ID: ${data.batchId}`
+        `✓ ${type === "weekly" ? "Weekly batch" : type === "news" ? "News scan" : "Blog batch"} queued — Batch ID: ${data.batchId}`
       );
     } catch {
       setTriggerMsg("Failed to trigger job");
@@ -193,13 +203,14 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Configure content pillars, schedules, and manual triggers</p>
-      </div>
+      <PageHeader
+        kicker="System"
+        title="Settings"
+        subtitle="Configure content pillars, schedules, and manual triggers."
+      />
 
       {/* ── Content Pillars ─────────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <SurfaceCard className="space-y-4">
         <h2 className="text-sm font-semibold text-white">Content Pillars</h2>
 
         <div className="space-y-3 divide-y divide-gray-800/60">
@@ -227,9 +238,8 @@ export default function SettingsPage() {
           </div>
           <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${
-                total === 100 ? "bg-green-500" : total > 100 ? "bg-red-500" : "bg-amber-500"
-              }`}
+              className={`h-full rounded-full transition-all ${total === 100 ? "bg-green-500" : total > 100 ? "bg-red-500" : "bg-amber-500"
+                }`}
               style={{ width: `${Math.min(total, 100)}%` }}
             />
           </div>
@@ -258,10 +268,10 @@ export default function SettingsPage() {
             Add
           </button>
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* ── VN Research Weight ───────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <SurfaceCard className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-white">VN Research Weight</h2>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -313,10 +323,10 @@ export default function SettingsPage() {
             <span className="text-sm font-semibold text-emerald-400 tabular-nums">{100 - vnWeight}% Research</span>
           </div>
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* ── Batch Schedule ───────────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <SurfaceCard className="space-y-4">
         <h2 className="text-sm font-semibold text-white">Weekly Batch Schedule</h2>
         <div className="flex items-end gap-4 flex-wrap">
           <div>
@@ -349,10 +359,10 @@ export default function SettingsPage() {
             Every {DAYS[config.weeklyBatchDay]} at {pad2(config.weeklyBatchHour)}:{pad2(config.weeklyBatchMinute)}
           </p>
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* ── Daily News Schedule ──────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <SurfaceCard className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-white">Daily News Schedule</h2>
           <p className="text-xs text-gray-500 mt-0.5">Runs Monday–Friday</p>
@@ -378,7 +388,43 @@ export default function SettingsPage() {
             Weekdays at {pad2(config.dailyNewsHour)}:{pad2(config.dailyNewsMinute)}
           </p>
         </div>
-      </div>
+      </SurfaceCard>
+
+      {/* ── Blog Schedule ────────────────────────────────────────────────────── */}
+      <SurfaceCard className="space-y-4">
+        <h2 className="text-sm font-semibold text-white">Blog Pipeline Schedule</h2>
+        <div className="flex items-end gap-4 flex-wrap">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">Day</label>
+            <select
+              value={config.blogBatchDay}
+              onChange={(e) => setConfig({ ...config, blogBatchDay: +e.target.value })}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">Hour</label>
+            <input
+              type="number" min={0} max={23} value={config.blogBatchHour}
+              onChange={(e) => setConfig({ ...config, blogBatchHour: +e.target.value })}
+              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">Minute</label>
+            <input
+              type="number" min={0} max={59} value={config.blogBatchMinute}
+              onChange={(e) => setConfig({ ...config, blogBatchMinute: +e.target.value })}
+              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+          </div>
+          <p className="text-xs text-gray-500 pb-2.5">
+            Every {DAYS[config.blogBatchDay]} at {pad2(config.blogBatchHour)}:{pad2(config.blogBatchMinute)}
+          </p>
+        </div>
+      </SurfaceCard>
 
       {/* ── Save ────────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
@@ -398,12 +444,12 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Manual Triggers ──────────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <SurfaceCard className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-white">Manual Triggers</h2>
           <p className="text-xs text-gray-500 mt-0.5">Run jobs immediately outside the schedule</p>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800/60 rounded-xl p-4 flex flex-col gap-3">
             <div>
               <p className="text-sm font-medium text-white">Weekly Batch</p>
@@ -413,7 +459,7 @@ export default function SettingsPage() {
               id="trigger-weekly"
               onClick={() => trigger("weekly")}
               disabled={triggerLoading !== null}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all"
+              className="w-full tm-button tm-button-primary py-2 text-xs font-medium disabled:opacity-50"
             >
               {triggerLoading === "weekly" ? "Starting…" : "Run Now"}
             </button>
@@ -427,9 +473,23 @@ export default function SettingsPage() {
               id="trigger-news"
               onClick={() => trigger("news")}
               disabled={triggerLoading !== null}
-              className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all"
+              className="w-full tm-button tm-button-primary py-2 text-xs font-medium disabled:opacity-50"
             >
               {triggerLoading === "news" ? "Starting…" : "Run Now"}
+            </button>
+          </div>
+          <div className="bg-gray-800/60 rounded-xl p-4 flex flex-col gap-3">
+            <div>
+              <p className="text-sm font-medium text-white">Blog Pipeline</p>
+              <p className="text-xs text-gray-500 mt-0.5">Riley to Sam to SamQA to CMS draft</p>
+            </div>
+            <button
+              id="trigger-blog"
+              onClick={() => trigger("blog")}
+              disabled={triggerLoading !== null}
+              className="w-full tm-button tm-button-primary py-2 text-xs font-medium disabled:opacity-50"
+            >
+              {triggerLoading === "blog" ? "Starting…" : "Run Now"}
             </button>
           </div>
         </div>
@@ -438,7 +498,7 @@ export default function SettingsPage() {
             {triggerMsg}
           </p>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

@@ -17,6 +17,7 @@ interface RequestFailure {
 export class AgentClientService {
   private readonly logger = new Logger(AgentClientService.name);
   private readonly baseUrls: string[];
+  private readonly appNameCache = new Map<string, string>();
 
   constructor(private readonly config: ConfigService) {
     const configuredUrl = this.config.get<string>(
@@ -51,20 +52,24 @@ export class AgentClientService {
       return [this.normalizeBaseUrl(base)];
     }
 
-    add(base);
-
     const isRailwayInternal = parsed.hostname.endsWith('.railway.internal');
-    if (!isRailwayInternal) return out;
+    if (!isRailwayInternal) {
+      add(base);
+      return out;
+    }
 
     // Railway internal services commonly expose PORT=8080.
+    // Prefer 8080 first to avoid noisy fallback errors.
     if (parsed.port === '8000') {
       const u = new URL(base);
       u.port = '8080';
       add(u.toString());
+      add(base);
     } else if (parsed.port === '8080') {
-      const u = new URL(base);
-      u.port = '8000';
-      add(u.toString());
+      add(base);
+      const alt = new URL(base);
+      alt.port = '8000';
+      add(alt.toString());
     } else if (!parsed.port) {
       const u8080 = new URL(base);
       u8080.port = '8080';
@@ -72,6 +77,9 @@ export class AgentClientService {
       const u8000 = new URL(base);
       u8000.port = '8000';
       add(u8000.toString());
+      add(base);
+    } else {
+      add(base);
     }
 
     return out;
@@ -126,7 +134,7 @@ export class AgentClientService {
    * App name = 'agent' (ADK api_server uses the directory name, not rootAgent.name)
    */
   async runWeeklyPipeline(batchId: string): Promise<any> {
-    const appName = 'src';
+    const appName = await this.resolveAppName('weekly', ['agent', 'src']);
     const userId = 'system';
     const sessionId = `batch-${batchId}`;
 
@@ -140,7 +148,7 @@ export class AgentClientService {
       appName,
       userId,
       sessionId,
-      'Generate the weekly research brief, plan the content, write all posts, and run QA review. This is the full weekly batch run.',
+      'Generate the full weekly batch now: research brief, content plan, complete drafts, and QA review. Hard requirements: return a full weekly draft package (25 posts total: 17 LinkedIn + 5 X + 3 YouTube) and final qa_result containing ALL_PASSED. Do not return progress updates, capability disclaimers, or partial outputs. Continue until outputs are complete and valid.',
     );
 
     this.logger.log(`[${batchId}] Weekly pipeline complete`);
@@ -151,7 +159,7 @@ export class AgentClientService {
    * Convenience: run the blog content pipeline
    */
   async runBlogPipeline(batchId: string): Promise<any> {
-    const appName = 'src/sam-pipeline.ts';
+    const appName = await this.resolveAppName('blog', ['sam-pipeline', 'src']);
     const userId = 'system';
     const sessionId = `blog-${batchId}`;
 
@@ -165,7 +173,7 @@ export class AgentClientService {
       appName,
       userId,
       sessionId,
-      'Run the full blog pipeline: pick the next 2 queued topics from clusters, research each with Perplexity Sonar, write complete MDX posts following the template, generate hero + OG images, render Mermaid diagrams, run QA validation, and publish as drafts to cms.tokenomics.net.',
+      'Run the full blog pipeline now: pick 2 queued topics, research each, write complete MDX posts, generate hero+OG images, render diagrams, QA validate, and publish drafts. Hard requirements: produce non-empty blog_output content and final blog_qa_result including ALL_PASSED. Do not return progress updates, capability disclaimers, questions, or partial responses. Continue execution until deliverables are complete.',
     );
 
     this.logger.log(`[${batchId}] Blog pipeline complete`);
@@ -176,7 +184,7 @@ export class AgentClientService {
    * Convenience: run the daily news scan
    */
   async runDailyNewsScan(batchId: string): Promise<any> {
-    const appName = 'src';
+    const appName = await this.resolveAppName('daily-news', ['agent', 'src']);
     const userId = 'system';
     const sessionId = `news-${batchId}`;
 
@@ -252,6 +260,29 @@ export class AgentClientService {
     );
   }
 
+  private async resolveAppName(
+    pipelineKey: string,
+    candidates: string[],
+  ): Promise<string> {
+    const cached = this.appNameCache.get(pipelineKey);
+    if (cached) return cached;
+
+    try {
+      const apps = await this.listApps();
+      const chosen = candidates.find((c) => apps.includes(c));
+      if (chosen) {
+        this.appNameCache.set(pipelineKey, chosen);
+        return chosen;
+      }
+    } catch {
+      // Fall back to default candidate when app discovery is unavailable.
+    }
+
+    const fallback = candidates[0];
+    this.appNameCache.set(pipelineKey, fallback);
+    return fallback;
+  }
+
   private async requestOnce<T>(
     urlString: string,
     method: string,
@@ -300,7 +331,6 @@ export class AgentClientService {
       );
 
       req.on('error', (error) => {
-        this.logger.error(`Agent Service unreachable at ${urlString}: ${error}`);
         reject({
           kind: 'network',
           message: String(error),
@@ -309,7 +339,6 @@ export class AgentClientService {
 
       req.on('timeout', () => {
         req.destroy();
-        this.logger.error(`Agent Service request timed out at ${urlString}`);
         reject({
           kind: 'timeout',
           message: 'Request timeout',

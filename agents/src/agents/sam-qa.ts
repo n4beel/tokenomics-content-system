@@ -1,6 +1,11 @@
 import { LlmAgent } from '@google/adk';
 
-const MODEL = process.env.LLM_MODEL_PRO || process.env.LLM_MODEL || 'gemini-3.1-pro-preview';
+const MODEL =
+  process.env.BLOG_LLM_MODEL ||
+  process.env.BLOG_LLM_MODEL_PRO ||
+  process.env.LLM_MODEL ||
+  process.env.LLM_MODEL_PRO ||
+  'gemini-2.5-flash';
 
 /**
  * SamQA: Quality control agent for blog posts.
@@ -16,6 +21,12 @@ export const samQaAgent = new LlmAgent({
 
 ## Your Role
 You validate every blog post Sam writes against a strict checklist. You read the blog_output from the session state and run all checks below.
+
+## Hard Constraints
+- You are QA only. Never call tools.
+- Never output progress/planning text.
+- Never output capability disclaimers.
+- If blog_output is missing/incomplete, return NEEDS_REWRITE with explicit missing items.
 
 ## QC Checklist
 

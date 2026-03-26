@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { PageHeader } from "@/components/ui/page-header";
+import { SurfaceCard } from "@/components/ui/surface-card";
 
 interface User {
   id: string;
@@ -98,13 +100,14 @@ export default function UsersPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Users</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage access to the content system</p>
-      </div>
+      <PageHeader
+        kicker="Admin"
+        title="Users"
+        subtitle="Manage access to the content system."
+      />
 
       {/* User list */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <SurfaceCard className="overflow-hidden p-0">
         <div className="px-6 py-4 border-b border-gray-800">
           <h2 className="text-sm font-semibold text-white">All Users</h2>
         </div>
@@ -125,11 +128,11 @@ export default function UsersPage() {
             ))}
           </ul>
         )}
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Add user */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <SurfaceCard>
           <h2 className="text-sm font-semibold text-white mb-4">Add User</h2>
           <form onSubmit={handleCreateUser} className="space-y-3">
             <input
@@ -157,15 +160,15 @@ export default function UsersPage() {
               id="create-user-submit"
               type="submit"
               disabled={creating}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-all"
+              className="w-full tm-button tm-button-primary disabled:opacity-50 text-sm font-medium py-2.5"
             >
               {creating ? "Creating…" : "Create User"}
             </button>
           </form>
-        </div>
+        </SurfaceCard>
 
         {/* Change password */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <SurfaceCard>
           <h2 className="text-sm font-semibold text-white mb-4">Change My Password</h2>
           <form onSubmit={handleChangePassword} className="space-y-3">
             <input
@@ -193,12 +196,12 @@ export default function UsersPage() {
               id="change-password-submit"
               type="submit"
               disabled={changingPwd}
-              className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-all"
+              className="w-full tm-button tm-button-primary disabled:opacity-50 text-sm font-medium py-2.5"
             >
               {changingPwd ? "Changing…" : "Change Password"}
             </button>
           </form>
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

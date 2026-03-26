@@ -1,6 +1,10 @@
 import { LlmAgent } from '@google/adk';
 
-const MODEL = process.env.LLM_MODEL || 'gemini-2.0-flash';
+const MODEL =
+  process.env.WEEKLY_LLM_MODEL ||
+  process.env.LLM_MODEL_WEEKLY ||
+  process.env.LLM_MODEL ||
+  'gemini-2.5-flash';
 // const MODEL = 'gemini-3.1-pro-preview'; // Hardcoded to prevent lite models from truncating the complex planning output
 
 export const mayaAgent = new LlmAgent({

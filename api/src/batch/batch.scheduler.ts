@@ -12,7 +12,7 @@ export class BatchScheduler implements OnModuleInit {
     private readonly batchService: BatchService,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly settings: SettingsService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.registerSchedules();
@@ -26,6 +26,7 @@ export class BatchScheduler implements OnModuleInit {
     // Delete existing jobs if they exist
     this.deleteCronIfExists('weekly-batch');
     this.deleteCronIfExists('daily-news-scan');
+    this.deleteCronIfExists('blog-batch');
 
     await this.registerSchedules();
     this.logger.log('Cron schedules refreshed from DB settings');
@@ -34,6 +35,7 @@ export class BatchScheduler implements OnModuleInit {
   private async registerSchedules() {
     const weeklyCron = await this.settings.getWeeklyCron();
     const dailyCron = await this.settings.getDailyNewsCron();
+    const blogCron = await this.settings.getBlogCron();
 
     // Weekly batch
     const weeklyJob = new CronJob(weeklyCron, () => this.handleWeeklyBatch());
@@ -46,6 +48,12 @@ export class BatchScheduler implements OnModuleInit {
     this.schedulerRegistry.addCronJob('daily-news-scan', dailyJob);
     dailyJob.start();
     this.logger.log(`Registered dynamic cron 'daily-news-scan': ${dailyCron}`);
+
+    // Blog batch
+    const blogJob = new CronJob(blogCron, () => this.handleBlogBatch());
+    this.schedulerRegistry.addCronJob('blog-batch', blogJob);
+    blogJob.start();
+    this.logger.log(`Registered dynamic cron 'blog-batch': ${blogCron}`);
   }
 
   private deleteCronIfExists(name: string) {
@@ -70,5 +78,13 @@ export class BatchScheduler implements OnModuleInit {
     this.logger.log('Scheduled daily news scan triggered');
     const { batchId, jobId } = await this.batchService.triggerDailyNewsScan();
     this.logger.log(`Daily news scan queued: ${batchId} (job: ${jobId})`);
+  }
+
+  private async handleBlogBatch() {
+    this.logger.log('Scheduled blog batch triggered');
+    const { batchId, jobId } = await this.batchService.triggerBlogBatch(
+      'scheduler',
+    );
+    this.logger.log(`Blog batch queued: ${batchId} (job: ${jobId})`);
   }
 }

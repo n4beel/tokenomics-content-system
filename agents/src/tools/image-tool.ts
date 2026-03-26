@@ -2,11 +2,7 @@ import { FunctionTool } from '@google/adk';
 import { z } from 'zod';
 import { execFile } from 'child_process';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SEO_ROOT = path.resolve(__dirname, '../../../../tokenomics-seo');
-const SCRIPT = path.join(SEO_ROOT, 'scripts', 'image-pipeline.mjs');
+import { buildToolEnv, resolveNodeExec, resolveSeoRoot } from './runtime-paths.js';
 
 const heroParams = z.object({
   prompt: z.string().describe('The image generation prompt following the Precision Infrastructure brand direction'),
@@ -27,10 +23,14 @@ export const heroImageTool = new FunctionTool({
   parameters: heroParams as any,
   execute: async (args: any) => {
     const { prompt, slug, outputDir } = args;
+    const seoRoot = resolveSeoRoot(['scripts/image-pipeline.mjs']);
+    const nodeExec = resolveNodeExec();
+    const toolEnv = buildToolEnv(seoRoot);
+    const script = path.join(seoRoot, 'scripts', 'image-pipeline.mjs');
     return new Promise((resolve) => {
-      execFile('node', [SCRIPT, 'hero', prompt, '--slug', slug, '--output', outputDir], {
-        cwd: SEO_ROOT,
-        env: { ...process.env },
+      execFile(nodeExec, [script, 'hero', prompt, '--slug', slug, '--output', outputDir], {
+        cwd: seoRoot,
+        env: toolEnv,
         timeout: 180_000,
       }, (error, stdout, stderr) => {
         if (error) {
@@ -49,10 +49,14 @@ export const ogImageTool = new FunctionTool({
   parameters: ogParams as any,
   execute: async (args: any) => {
     const { slug, title, heroPath, outputDir } = args;
+    const seoRoot = resolveSeoRoot(['scripts/image-pipeline.mjs']);
+    const nodeExec = resolveNodeExec();
+    const toolEnv = buildToolEnv(seoRoot);
+    const script = path.join(seoRoot, 'scripts', 'image-pipeline.mjs');
     return new Promise((resolve) => {
-      execFile('node', [SCRIPT, 'og', '--slug', slug, '--title', title, '--hero', heroPath, '--output', outputDir], {
-        cwd: SEO_ROOT,
-        env: { ...process.env },
+      execFile(nodeExec, [script, 'og', '--slug', slug, '--title', title, '--hero', heroPath, '--output', outputDir], {
+        cwd: seoRoot,
+        env: toolEnv,
         timeout: 60_000,
       }, (error, stdout, stderr) => {
         if (error) {

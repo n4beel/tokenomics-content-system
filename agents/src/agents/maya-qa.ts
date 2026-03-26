@@ -1,6 +1,10 @@
 import { LlmAgent } from '@google/adk';
 
-const MODEL = process.env.LLM_MODEL || 'gemini-2.0-flash';
+const MODEL =
+  process.env.WEEKLY_LLM_MODEL ||
+  process.env.LLM_MODEL_WEEKLY ||
+  process.env.LLM_MODEL ||
+  'gemini-2.5-flash';
 // const MODEL = 'gemini-3.1-pro-preview'; // Hardcoded to prevent lite models from truncating the large 15-post QA output
 
 export const mayaQaAgent = new LlmAgent({
@@ -13,6 +17,13 @@ export const mayaQaAgent = new LlmAgent({
 
 ## Role
 You review every piece of drafted content before Tony sees it. You are the last line of defense for brand quality.
+
+## Hard Constraints
+- You are a QA reviewer only. Never produce planning text or status updates.
+- Never call tools.
+- Never claim inability/capability limits.
+- ONLY include "ALL_PASSED" when the submission contains the complete weekly set of 25 posts.
+- If post count is not 25, verdict MUST be FAIL and include revision instruction to return all 25 posts.
 
 ## Input
 You receive from session state:

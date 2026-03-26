@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { BATCH_QUEUE } from './constants';
+import {
+  BLOG_BATCH_QUEUE,
+  DAILY_NEWS_QUEUE,
+  WEEKLY_BATCH_QUEUE,
+} from './constants';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface BatchJobData {
@@ -16,8 +20,10 @@ export class BatchService {
   private readonly logger = new Logger(BatchService.name);
 
   constructor(
-    @InjectQueue(BATCH_QUEUE) private readonly batchQueue: Queue,
-  ) {}
+    @InjectQueue(WEEKLY_BATCH_QUEUE) private readonly weeklyQueue: Queue,
+    @InjectQueue(BLOG_BATCH_QUEUE) private readonly blogQueue: Queue,
+    @InjectQueue(DAILY_NEWS_QUEUE) private readonly dailyNewsQueue: Queue,
+  ) { }
 
   /**
    * Queue a weekly batch job
@@ -26,12 +32,16 @@ export class BatchService {
     const batchId = `batch-${uuidv4().slice(0, 8)}`;
     this.logger.log(`Triggering weekly batch: ${batchId} (by: ${triggeredBy})`);
 
-    const job = await this.batchQueue.add('weekly-batch', {
-      batchId,
-      type: 'weekly',
-      triggeredBy,
-      triggeredAt: new Date().toISOString(),
-    } as BatchJobData);
+    const job = await this.weeklyQueue.add(
+      'weekly-batch',
+      {
+        batchId,
+        type: 'weekly',
+        triggeredBy,
+        triggeredAt: new Date().toISOString(),
+      } as BatchJobData,
+      { jobId: `weekly-${batchId}` },
+    );
 
     return { batchId, jobId: job.id };
   }
@@ -43,12 +53,16 @@ export class BatchService {
     const batchId = `blog-${uuidv4().slice(0, 8)}`;
     this.logger.log(`Triggering blog batch: ${batchId} (by: ${triggeredBy})`);
 
-    const job = await this.batchQueue.add('blog-batch', {
-      batchId,
-      type: 'blog',
-      triggeredBy,
-      triggeredAt: new Date().toISOString(),
-    } as BatchJobData);
+    const job = await this.blogQueue.add(
+      'blog-batch',
+      {
+        batchId,
+        type: 'blog',
+        triggeredBy,
+        triggeredAt: new Date().toISOString(),
+      } as BatchJobData,
+      { jobId: `blog-${batchId}` },
+    );
 
     return { batchId, jobId: job.id };
   }
@@ -60,12 +74,16 @@ export class BatchService {
     const batchId = `news-${uuidv4().slice(0, 8)}`;
     this.logger.log(`Triggering daily news scan: ${batchId}`);
 
-    const job = await this.batchQueue.add('daily-news', {
-      batchId,
-      type: 'daily-news',
-      triggeredBy: 'scheduler',
-      triggeredAt: new Date().toISOString(),
-    } as BatchJobData);
+    const job = await this.dailyNewsQueue.add(
+      'daily-news',
+      {
+        batchId,
+        type: 'daily-news',
+        triggeredBy: 'scheduler',
+        triggeredAt: new Date().toISOString(),
+      } as BatchJobData,
+      { jobId: `news-${batchId}` },
+    );
 
     return { batchId, jobId: job.id };
   }
@@ -74,7 +92,11 @@ export class BatchService {
    * Get the status of a batch job
    */
   async getBatchStatus(jobId: string) {
-    const job = await this.batchQueue.getJob(jobId);
+    const job =
+      (await this.weeklyQueue.getJob(jobId)) ||
+      (await this.blogQueue.getJob(jobId)) ||
+      (await this.dailyNewsQueue.getJob(jobId));
+
     if (!job) {
       return null;
     }

@@ -1,0 +1,112 @@
+{
+  "posts": [
+    {
+      "slug": "what-is-a-tokenomics-data-room",
+      "title": "What Is a Tokenomics Data Room? (Why Investors Expect One)",
+      "keyword": "tokenomics data room",
+      "cluster": "data-room",
+      "type": "pillar",
+      "category": "Data Room & Documentation",
+      "publishedAt": "2026-02-01",
+      "url": "/blog/what-is-a-tokenomics-data-room/",
+      "status": "published",
+      "tags": ["data-room", "tokenomics", "investor-documentation", "fundraising", "due-diligence"]
+    },
+    {
+      "slug": "tokenomics-data-room-checklist",
+      "title": "Tokenomics Data Room Checklist: What to Include",
+      "keyword": "tokenomics data room checklist",
+      "cluster": "data-room",
+      "type": "support",
+      "category": "Data Room & Documentation",
+      "publishedAt": "2026-02-03",
+      "url": "/blog/tokenomics-data-room-checklist/",
+      "status": "published",
+      "tags": ["data-room", "tokenomics", "checklist", "investor-documentation", "due-diligence"]
+    },
+    {
+      "slug": "rwa-tokenomics-design",
+      "title": "RWA Tokenomics: Designing Token Models for Real Assets",
+      "keyword": "RWA tokenomics",
+      "cluster": "rwa",
+      "type": "pillar",
+      "category": "RWA Tokenomics",
+      "publishedAt": "2026-02-05",
+      "url": "/blog/rwa-tokenomics-design/",
+      "status": "published",
+      "tags": ["rwa", "tokenomics", "real-world-assets", "token-design", "compliance"]
+    },
+    {
+      "slug": "token-standards-explained",
+      "title": "Token Standards Explained: A Founder's Guide",
+      "keyword": "token standards",
+      "cluster": "token-standards",
+      "type": "pillar",
+      "category": "Token Standards",
+      "publishedAt": "2026-02-07",
+      "url": "/blog/token-standards-explained/",
+      "status": "published",
+      "tags": ["token-standards", "erc-20", "security-tokens", "token-design", "compliance"]
+    },
+    {
+      "slug": "erc-3643-compliant-security-tokens",
+      "title": "ERC-3643: The Standard for Compliant Security Tokens",
+      "keyword": "ERC-3643",
+      "cluster": "token-standards",
+      "type": "support",
+      "category": "Token Standards",
+      "publishedAt": "2026-02-10",
+      "url": "/blog/erc-3643-compliant-security-tokens/",
+      "status": "published",
+      "tags": ["erc-3643", "security-tokens", "compliance", "token-standards", "regulation"]
+    },
+    {
+      "slug": "tokenizing-real-estate-tokenomics",
+      "title": "Real Estate Tokenomics: Designing Property Tokens",
+      "keyword": "real estate tokenization tokenomics",
+      "cluster": "rwa",
+      "type": "support",
+      "category": "RWA Tokenomics",
+      "publishedAt": "2026-02-12",
+      "url": "/blog/tokenizing-real-estate-tokenomics/",
+      "status": "published",
+      "cmsId": 6,
+      "tags": ["rwa", "real-estate", "tokenomics", "compliance", "token-design"]
+    },
+    {
+      "slug": "erc-1400-security-token-standard",
+      "title": "ERC-1400: Security Token Standard for Regulated Assets",
+      "keyword": "ERC-1400",
+      "cluster": "token-standards",
+      "type": "support",
+      "category": "Token Standards",
+      "publishedAt": "2026-02-13",
+      "url": "/blog/erc-1400-security-token-standard/",
+      "status": "published",
+      "cmsId": 7,
+      "tags": ["erc-1400", "security-tokens", "token-standards", "compliance", "rwa"]
+    }
+  ],
+  "sitePages": [
+    {
+      "url": "/services/data-room/",
+      "title": "Tokenomics Data Room",
+      "description": "Our flagship service. Link to this from every post where relevant."
+    },
+    {
+      "url": "/case-studies/real-world-assets/",
+      "title": "Case Study: EcoYield (RWA)",
+      "description": "Real-world asset tokenomics case study. Link from RWA-related posts."
+    },
+    {
+      "url": "/case-studies/depin/",
+      "title": "Case Study: Roark (DePIN)",
+      "description": "DePIN tokenomics case study. Link from DePIN-related posts."
+    },
+    {
+      "url": "/case-studies/decentralized-gpu/",
+      "title": "Case Study: Nosana (Decentralized GPU)",
+      "description": "GPU compute tokenomics case study. Link from compute/infrastructure posts."
+    }
+  ]
+}
