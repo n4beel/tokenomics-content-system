@@ -438,149 +438,149 @@ export default function WeeklyBatchesPage() {
             />
 
             <SurfaceCard className="p-0 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-[#3a332d] flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-semibold">Pending Review</h3>
-                        <div className="flex items-center gap-2">
-                            {weeklyRuns.length > 0 && (
-                                <AppSelect
-                                    value={selectedRunId}
-                                    onChange={(e) => setSelectedRunId(e.target.value)}
-                                    className="text-xs py-1.5 px-2.5 w-auto min-w-[190px]"
-                                >
-                                    {weeklyRuns.map((run) => (
-                                        <option key={run.id} value={run.id}>
-                                            {new Date(run.startedAt).toLocaleDateString()} ({run._count?.posts ?? 0} posts)
-                                        </option>
-                                    ))}
-                                </AppSelect>
-                            )}
-                            <button
-                                onClick={() => void approveAllPendingInRun()}
-                                disabled={approvingAll || pendingPosts.length === 0}
-                                className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
+                <div className="px-6 py-4 border-b border-[#3a332d] flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">Pending Review</h3>
+                    <div className="flex items-center gap-2">
+                        {weeklyRuns.length > 0 && (
+                            <AppSelect
+                                value={selectedRunId}
+                                onChange={(e) => setSelectedRunId(e.target.value)}
+                                className="text-xs py-1.5 px-2.5 w-auto min-w-[190px]"
                             >
-                                {approvingAll ? "Approving..." : `Approve All (${pendingPosts.length})`}
+                                {weeklyRuns.map((run) => (
+                                    <option key={run.id} value={run.id}>
+                                        {new Date(run.startedAt).toLocaleDateString()} ({run._count?.posts ?? 0} posts)
+                                    </option>
+                                ))}
+                            </AppSelect>
+                        )}
+                        <button
+                            onClick={() => void approveAllPendingInRun()}
+                            disabled={approvingAll || pendingPosts.length === 0}
+                            className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
+                        >
+                            {approvingAll ? "Approving..." : `Approve All (${pendingPosts.length})`}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="px-6 pt-4 border-b border-[#3a332d]">
+                    <div className="flex gap-2 overflow-auto pb-3">
+                        {DAYS.map((day) => (
+                            <button
+                                key={day}
+                                onClick={() => setActiveDay(day)}
+                                className={`tm-button px-3 py-1.5 text-xs whitespace-nowrap ${activeDay === day ? "tm-button-primary" : ""}`}
+                            >
+                                {dayLabel[day]} ({pendingByDay[day].length})
                             </button>
-                        </div>
+                        ))}
                     </div>
+                </div>
 
-                    <div className="px-6 pt-4 border-b border-[#3a332d]">
-                        <div className="flex gap-2 overflow-auto pb-3">
-                            {DAYS.map((day) => (
-                                <button
-                                    key={day}
-                                    onClick={() => setActiveDay(day)}
-                                    className={`tm-button px-3 py-1.5 text-xs whitespace-nowrap ${activeDay === day ? "tm-button-primary" : ""}`}
-                                >
-                                    {dayLabel[day]} ({pendingByDay[day].length})
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="max-h-[540px] overflow-auto divide-y divide-[#3a332d]">
-                        {postsLoading ? (
-                            <p className="p-6 text-sm" style={{ color: "var(--text-secondary)" }}>Loading posts...</p>
-                        ) : dayPosts.length === 0 ? (
-                            <p className="p-6 text-sm" style={{ color: "var(--text-secondary)" }}>
-                                No pending posts for {dayLabel[activeDay]}.
-                            </p>
-                        ) : (
-                            dayPosts.map((post) => (
-                                <div key={post.id} className="p-4 space-y-3">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-xs uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
-                                                {post.platform}
-                                            </p>
-                                            {post.pillar ? (
-                                                <span className="text-[11px] px-2 py-0.5 rounded-full border border-[#c7beb4]" style={{ color: "var(--text-secondary)" }}>
-                                                    {post.pillar}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        <StatusBadge status={post.status} />
+                <div className="max-h-[540px] overflow-auto divide-y divide-[#3a332d]">
+                    {postsLoading ? (
+                        <p className="p-6 text-sm" style={{ color: "var(--text-secondary)" }}>Loading posts...</p>
+                    ) : dayPosts.length === 0 ? (
+                        <p className="p-6 text-sm" style={{ color: "var(--text-secondary)" }}>
+                            No pending posts for {dayLabel[activeDay]}.
+                        </p>
+                    ) : (
+                        dayPosts.map((post) => (
+                            <div key={post.id} className="p-4 space-y-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-xs uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                                            {post.platform}
+                                        </p>
+                                        {post.pillar ? (
+                                            <span className="text-[11px] px-2 py-0.5 rounded-full border border-[#c7beb4]" style={{ color: "var(--text-secondary)" }}>
+                                                {post.pillar}
+                                            </span>
+                                        ) : null}
                                     </div>
+                                    <StatusBadge status={post.status} />
+                                </div>
 
-                                    <p className="text-sm font-medium">{post.topic || "Untitled"}</p>
+                                <p className="text-sm font-medium">{post.topic || "Untitled"}</p>
 
-                                    {editingPostId === post.id ? (
-                                        <div className="space-y-2">
-                                            <AppTextarea
-                                                value={editingContent}
-                                                onChange={(e) => setEditingContent(e.target.value)}
-                                                rows={8}
-                                                className="text-xs"
-                                            />
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        void updatePost(post.id, { content: editingContent });
-                                                        setEditingPostId(null);
-                                                        setEditingContent("");
-                                                    }}
-                                                    disabled={updatingPostId === post.id}
-                                                    className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
-                                                >
-                                                    Save
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingPostId(null);
-                                                        setEditingContent("");
-                                                    }}
-                                                    className="tm-button px-3 py-1.5 text-xs"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
+                                {editingPostId === post.id ? (
+                                    <div className="space-y-2">
+                                        <AppTextarea
+                                            value={editingContent}
+                                            onChange={(e) => setEditingContent(e.target.value)}
+                                            rows={8}
+                                            className="text-xs"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    void updatePost(post.id, { content: editingContent });
+                                                    setEditingPostId(null);
+                                                    setEditingContent("");
+                                                }}
+                                                disabled={updatingPostId === post.id}
+                                                className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingPostId(null);
+                                                    setEditingContent("");
+                                                }}
+                                                className="tm-button px-3 py-1.5 text-xs"
+                                            >
+                                                Cancel
+                                            </button>
                                         </div>
-                                    ) : (
-                                        <>
-                                            <p className="text-xs line-clamp-4" style={{ color: "var(--text-secondary)" }}>
-                                                {post.content}
-                                            </p>
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                    </div>
+                                ) : (
+                                    <>
+                                        <p className="text-xs line-clamp-4" style={{ color: "var(--text-secondary)" }}>
+                                            {post.content}
+                                        </p>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <button
+                                                onClick={() => void updatePost(post.id, { status: "approved" })}
+                                                disabled={updatingPostId === post.id}
+                                                className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
+                                            >
+                                                Approve
+                                            </button>
+                                            <button
+                                                onClick={() => void updatePost(post.id, { status: "rejected" })}
+                                                disabled={updatingPostId === post.id}
+                                                className="tm-button px-3 py-1.5 text-xs disabled:opacity-50"
+                                            >
+                                                Reject
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingPostId(post.id);
+                                                    setEditingContent(post.content || "");
+                                                }}
+                                                className="tm-button px-3 py-1.5 text-xs"
+                                            >
+                                                Edit
+                                            </button>
+                                            {post.status === "rejected" ? (
                                                 <button
-                                                    onClick={() => void updatePost(post.id, { status: "approved" })}
-                                                    disabled={updatingPostId === post.id}
-                                                    className="tm-button tm-button-primary px-3 py-1.5 text-xs disabled:opacity-50"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => void updatePost(post.id, { status: "rejected" })}
+                                                    onClick={() => void updatePost(post.id, { status: "draft" })}
                                                     disabled={updatingPostId === post.id}
                                                     className="tm-button px-3 py-1.5 text-xs disabled:opacity-50"
                                                 >
-                                                    Reject
+                                                    Reset
                                                 </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingPostId(post.id);
-                                                        setEditingContent(post.content || "");
-                                                    }}
-                                                    className="tm-button px-3 py-1.5 text-xs"
-                                                >
-                                                    Edit
-                                                </button>
-                                                {post.status === "rejected" ? (
-                                                    <button
-                                                        onClick={() => void updatePost(post.id, { status: "draft" })}
-                                                        disabled={updatingPostId === post.id}
-                                                        className="tm-button px-3 py-1.5 text-xs disabled:opacity-50"
-                                                    >
-                                                        Reset
-                                                    </button>
-                                                ) : null}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </SurfaceCard>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </SurfaceCard>
 
             <div className="grid gap-4 items-start lg:grid-cols-[1.35fr_1fr]">
                 <SurfaceCard className="p-0 overflow-hidden">
