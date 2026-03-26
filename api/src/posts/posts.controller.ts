@@ -44,11 +44,15 @@ export class PostsController {
     return this.postsService.getRecentBatchRuns();
   }
 
-  /** GET /api/posts/cms?limit=100 */
+  /** GET /api/posts/cms?limit=100&status=draft */
   @Get('cms')
-  cmsPosts(@Query('limit') limit?: string) {
+  cmsPosts(@Query('limit') limit?: string, @Query('status') status?: string) {
     const parsed = Number(limit);
     const normalized = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 100;
-    return this.postsService.getCmsPosts(normalized);
+    const normalizedStatus =
+      typeof status === 'string' && status.trim().length > 0
+        ? status.trim().toLowerCase()
+        : undefined;
+    return this.postsService.getCmsPosts(normalized, normalizedStatus);
   }
 }

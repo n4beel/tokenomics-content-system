@@ -178,7 +178,7 @@ export class PostsService {
     });
   }
 
-  async getCmsPosts(limit = 100) {
+  async getCmsPosts(limit = 100, status?: string) {
     const configured =
       this.config.get<string>('PAYLOAD_CMS_URL') ||
       this.config.get<string>('CMS_API_URL') ||
@@ -191,7 +191,15 @@ export class PostsService {
     let hasNextPage = true;
 
     while (hasNextPage) {
-      const url = `${cmsApiBase}/posts?limit=${pageSize}&page=${page}`;
+      const params = new URLSearchParams({
+        limit: String(pageSize),
+        page: String(page),
+      });
+      if (status) {
+        // Payload uses `_status` for draft/published workflow state.
+        params.append('where[_status][equals]', status);
+      }
+      const url = `${cmsApiBase}/posts?${params.toString()}`;
       const response = await this.cmsRequest(url);
       const pageDocs = Array.isArray(response?.docs) ? response.docs : [];
       docs.push(...pageDocs);

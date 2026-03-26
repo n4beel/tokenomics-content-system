@@ -96,7 +96,7 @@ export default function WeeklyBlogsPage() {
 
         setDraftsLoading(true);
         try {
-            const response = await fetch(`${API}/api/posts/cms?limit=200`, {
+            const response = await fetch(`${API}/api/posts/cms?limit=200&status=draft`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const payload = response.ok ? ((await response.json()) as { docs?: any[] }) : { docs: [] };
@@ -107,9 +107,10 @@ export default function WeeklyBlogsPage() {
                     id: d.id,
                     title: d.title,
                     slug: d.slug,
-                    status: d.status || "draft",
+                    status: (d.status || d._status || "unknown").toString().toLowerCase(),
                     createdAt: d.createdAt || d.updatedAt || new Date().toISOString(),
-                }));
+                }))
+                .filter((d) => d.status === "draft");
             setDrafts(normalized);
         } catch {
             setDrafts([]);
