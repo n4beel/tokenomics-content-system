@@ -4,7 +4,6 @@ import https from 'https';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { resolveRunScopedRoot, resolveSeoRoot } from './runtime-paths.js';
 
 const CONTENT_API_URL = process.env.CONTENT_SYSTEM_API_URL || 'http://localhost:3000';
@@ -15,8 +14,19 @@ const OUTPUT_BUCKET_REGION = process.env.OUTPUT_BUCKET_REGION || 'auto';
 const OUTPUT_BUCKET_ACCESS_KEY_ID = process.env.OUTPUT_BUCKET_ACCESS_KEY_ID || '';
 const OUTPUT_BUCKET_SECRET_ACCESS_KEY = process.env.OUTPUT_BUCKET_SECRET_ACCESS_KEY || '';
 const OUTPUT_BUCKET_PREFIX = (process.env.OUTPUT_BUCKET_PREFIX || 'tokenomics-output').replace(/^\/+|\/+$/g, '');
+const OUTPUT_BUCKET_ENABLED_RAW = (process.env.OUTPUT_BUCKET_ENABLED || '').trim().toLowerCase();
+const IS_RAILWAY_RUNTIME =
+  !!process.env.RAILWAY_PROJECT_ID ||
+  !!process.env.RAILWAY_ENVIRONMENT_ID ||
+  !!process.env.RAILWAY_PRIVATE_DOMAIN;
+const OUTPUT_BUCKET_ENABLED =
+  OUTPUT_BUCKET_ENABLED_RAW.length > 0
+    ? ['1', 'true', 'yes', 'on'].includes(OUTPUT_BUCKET_ENABLED_RAW)
+    : IS_RAILWAY_RUNTIME;
 
-let outputBucketClient: S3Client | null | undefined;
+let outputBucketClient: any | null | undefined;
+let outputBucketCtor: any | undefined;
+let putObjectCtor: any | undefined;
 
 const cmsParams = z.object({
   title: z.string().describe('Post title'),
@@ -87,10 +97,11 @@ function detectContentType(filePath: string): string {
   return 'application/octet-stream';
 }
 
-function getOutputBucketClient(): S3Client | null {
+async function getOutputBucketClient(): Promise<any | null> {
   if (outputBucketClient !== undefined) return outputBucketClient;
 
   const configured =
+    OUTPUT_BUCKET_ENABLED &&
     !!OUTPUT_BUCKET_NAME &&
     !!OUTPUT_BUCKET_ENDPOINT &&
     !!OUTPUT_BUCKET_ACCESS_KEY_ID &&
@@ -101,7 +112,13 @@ function getOutputBucketClient(): S3Client | null {
     return outputBucketClient;
   }
 
-  outputBucketClient = new S3Client({
+  if (!outputBucketCtor || !putObjectCtor) {
+    const sdk = await import('@aws-sdk/client-s3');
+    outputBucketCtor = sdk.S3Client;
+    putObjectCtor = sdk.PutObjectCommand;
+  }
+
+  outputBucketClient = new outputBucketCtor({
     region: OUTPUT_BUCKET_REGION,
     endpoint: OUTPUT_BUCKET_ENDPOINT,
     forcePathStyle: true,
@@ -115,14 +132,14 @@ function getOutputBucketClient(): S3Client | null {
 }
 
 async function uploadArtifactToOutputBucket(localPath: string, objectKey: string): Promise<void> {
-  const client = getOutputBucketClient();
+  const client = await getOutputBucketClient();
   if (!client || !OUTPUT_BUCKET_NAME) {
     throw new Error('Output bucket is not configured');
   }
 
   const buffer = fs.readFileSync(localPath);
   await client.send(
-    new PutObjectCommand({
+    new putObjectCtor({
       Bucket: OUTPUT_BUCKET_NAME,
       Key: objectKey,
       Body: buffer,

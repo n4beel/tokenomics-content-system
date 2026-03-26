@@ -128,11 +128,13 @@ function toSafeRelativePath(input: string): string {
  */
 export function resolveOutputRoot(seoRoot: string): string {
     const configured = process.env.TOKENOMICS_OUTPUT_ROOT;
+    const localAgentOutput = path.resolve(__dirname, '../../data/tokenomics-output');
     const chromaDir = process.env.CHROMA_DATA_DIR
         ? path.resolve(process.env.CHROMA_DATA_DIR)
         : undefined;
     const candidates = [
         configured,
+        localAgentOutput,
         chromaDir ? path.join(chromaDir, 'tokenomics-output') : undefined,
         '/data/chroma/tokenomics-output',
         '/data/tokenomics-output',

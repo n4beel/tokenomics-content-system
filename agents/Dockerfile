@@ -6,6 +6,7 @@ FROM node:20-slim
 RUN apt-get update && apt-get install -y \
     python3 python3-pip python-is-python3 curl \
     && ln -sf /usr/bin/python3 /python \
+    && pip3 install --no-cache-dir chroma-mcp \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

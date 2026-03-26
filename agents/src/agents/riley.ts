@@ -14,6 +14,15 @@ const __dir = fileURLToPath(new URL('.', import.meta.url));
 const CHROMA_DATA_DIR = process.env.CHROMA_DATA_DIR
   ? resolve(process.env.CHROMA_DATA_DIR)
   : resolve(__dir, 'data', 'chroma');
+const CHROMA_MCP_COMMAND = (process.env.CHROMA_MCP_COMMAND || 'chroma-mcp').trim();
+const CHROMA_MCP_ARGS = [
+  '--client-type', 'persistent',
+  '--data-dir', CHROMA_DATA_DIR,
+];
+const CHROMA_SERVER_ARGS =
+  CHROMA_MCP_COMMAND === 'uvx'
+    ? ['chroma-mcp', ...CHROMA_MCP_ARGS]
+    : CHROMA_MCP_ARGS;
 
 export const rileyAgent = new LlmAgent({
   name: 'Riley',
@@ -80,12 +89,8 @@ Your output must be structured as:
     new MCPToolset({
       type: 'StdioConnectionParams',
       serverParams: {
-        command: 'uvx',
-        args: [
-          'chroma-mcp',
-          '--client-type', 'persistent',
-          '--data-dir', CHROMA_DATA_DIR,
-        ],
+        command: CHROMA_MCP_COMMAND,
+        args: CHROMA_SERVER_ARGS,
       },
     }),
   ],

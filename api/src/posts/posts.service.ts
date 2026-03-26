@@ -189,18 +189,39 @@ export class PostsService {
     const docs: any[] = [];
     let page = 1;
     let hasNextPage = true;
+    let statusQueryMode: '_status' | 'status' | 'none' = status ? '_status' : 'none';
 
     while (hasNextPage) {
       const params = new URLSearchParams({
         limit: String(pageSize),
         page: String(page),
       });
-      if (status) {
-        // Payload uses `_status` for draft/published workflow state.
-        params.append('where[_status][equals]', status);
+      if (status && statusQueryMode !== 'none') {
+        params.append(`where[${statusQueryMode}][equals]`, status);
       }
       const url = `${cmsApiBase}/posts?${params.toString()}`;
-      const response = await this.cmsRequest(url);
+      let response: any;
+      try {
+        response = await this.cmsRequest(url);
+      } catch (error: any) {
+        const message = String(error?.message || '');
+        const invalidStatusPath =
+          /cannot be queried:\s*_status/i.test(message) ||
+          /cannot be queried:\s*status/i.test(message);
+
+        if (status && invalidStatusPath) {
+          if (statusQueryMode === '_status') {
+            statusQueryMode = 'status';
+            continue;
+          }
+          if (statusQueryMode === 'status') {
+            statusQueryMode = 'none';
+            continue;
+          }
+        }
+
+        throw error;
+      }
       const pageDocs = Array.isArray(response?.docs) ? response.docs : [];
       docs.push(...pageDocs);
 
@@ -213,9 +234,17 @@ export class PostsService {
       }
     }
 
+    const filteredDocs =
+      status && statusQueryMode === 'none'
+        ? docs.filter((d) => {
+          const s = String(d?.status || d?._status || '').toLowerCase();
+          return s === status.toLowerCase();
+        })
+        : docs;
+
     return {
-      total: docs.length,
-      docs,
+      total: filteredDocs.length,
+      docs: filteredDocs,
     };
   }
 
