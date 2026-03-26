@@ -1,4 +1,5 @@
 import { LlmAgent } from '@google/adk';
+import { Schema, Type } from '@google/genai';
 
 const MODEL =
   process.env.BLOG_LLM_MODEL ||
@@ -6,6 +7,65 @@ const MODEL =
   process.env.LLM_MODEL ||
   process.env.LLM_MODEL_PRO ||
   'gemini-2.5-flash';
+
+const SamQaOutputSchema: Schema = {
+  type: Type.OBJECT,
+  description: 'Structured QA verdict for a Sam blog draft.',
+  properties: {
+    verdict: {
+      type: Type.STRING,
+      description: 'Overall QA verdict used by loop control.',
+      enum: ['ALL_PASSED', 'NEEDS_MINOR_EDITS', 'NEEDS_REWRITE'],
+    },
+    summary: {
+      type: Type.STRING,
+      description: 'Concise summary of QA outcome and rationale.',
+    },
+    totals: {
+      type: Type.OBJECT,
+      description: 'Aggregate QA counts.',
+      properties: {
+        checksRun: { type: Type.INTEGER },
+        checksPassed: { type: Type.INTEGER },
+        checksFailed: { type: Type.INTEGER },
+      },
+      required: ['checksRun', 'checksPassed', 'checksFailed'],
+    },
+    checks: {
+      type: Type.ARRAY,
+      description: 'Per-check pass/fail records.',
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          status: {
+            type: Type.STRING,
+            enum: ['PASS', 'FAIL'],
+          },
+          severity: {
+            type: Type.STRING,
+            description: 'Critical failures usually require NEEDS_REWRITE.',
+            enum: ['critical', 'non_critical'],
+          },
+          details: {
+            type: Type.STRING,
+            description: 'Short explanation of why it passed/failed.',
+          },
+          location: {
+            type: Type.STRING,
+            description: 'Section/paragraph reference. Use N/A when not applicable.',
+          },
+          fix: {
+            type: Type.STRING,
+            description: 'Specific rewrite instruction. Empty string when PASS.',
+          },
+        },
+        required: ['name', 'status', 'severity', 'details', 'location', 'fix'],
+      },
+    },
+  },
+  required: ['verdict', 'summary', 'totals', 'checks'],
+};
 
 /**
  * SamQA: Quality control agent for blog posts.
@@ -17,6 +77,7 @@ export const samQaAgent = new LlmAgent({
   model: MODEL,
   description: 'SamQA validates blog posts against the full GEO + SEO + brand voice + frontmatter QC checklist.',
   outputKey: 'blog_qa_result',
+  outputSchema: SamQaOutputSchema,
   instruction: `You are SamQA, the quality control agent for Tokenomics.net blog posts.
 
 ## Your Role
@@ -27,6 +88,8 @@ You validate every blog post Sam writes against a strict checklist. You read the
 - Never output progress/planning text.
 - Never output capability disclaimers.
 - If blog_output is missing/incomplete, return NEEDS_REWRITE with explicit missing items.
+- You are the only agent allowed to emit verdict "ALL_PASSED"; this verdict is the loop completion signal.
+- Output ONLY valid JSON that matches outputSchema. Do not output markdown.
 
 ## QC Checklist
 
@@ -62,18 +125,20 @@ You validate every blog post Sam writes against a strict checklist. You read the
 - [ ] **Dates** — YYYY-MM-DD format?
 
 ## Output Format
+Return a single JSON object with this shape:
+- verdict: ALL_PASSED | NEEDS_MINOR_EDITS | NEEDS_REWRITE
+- summary: brief explanation
+- totals: checksRun/checksPassed/checksFailed
+- checks: array of check objects with
+  - name
+  - status: PASS|FAIL
+  - severity: critical|non_critical
+  - details
+  - location (section/paragraph or "N/A")
+  - fix (specific action; empty string when PASS)
 
-For each check, report: **PASS** or **FAIL** with a brief explanation.
-
-**Overall Verdict (MUST be one of these):**
-- **ALL_PASSED** — All checks pass. Post is ready for CMS publishing.
-- **NEEDS_MINOR_EDITS** — 1-3 non-critical failures with clear fixes. List each fix.
-- **NEEDS_REWRITE** — Any critical GEO check fails. List all failures with specific fix instructions, section/paragraph locations, and content to add.
-
-For any FAIL, provide:
-- What's wrong
-- Where in the post (section/paragraph)
-- Specific fix instruction
-
-If your verdict is ALL_PASSED, include the exact string "ALL_PASSED" in your output so the pipeline loop knows to stop.`,
+Rules:
+- Run all checklist items and include each one in checks.
+- If any critical GEO check fails, verdict must be NEEDS_REWRITE.
+- If verdict is ALL_PASSED, set verdict exactly to "ALL_PASSED" so pipeline stop logic can detect it.`,
 });

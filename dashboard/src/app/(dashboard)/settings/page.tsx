@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { AppInput, AppSelect } from "@/components/ui/form-controls";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
@@ -60,11 +61,11 @@ function PillarRow({
 
       {/* Name + bar stacked */}
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <input
+        <AppInput
           type="text"
           value={pillar.name}
           onChange={(e) => onChange({ ...pillar, name: e.target.value })}
-          className="w-full bg-transparent text-sm text-white focus:outline-none placeholder-gray-600"
+          className="bg-transparent border-0 p-0 rounded-none text-white placeholder-gray-600 focus:ring-0"
           placeholder="Pillar name"
         />
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -77,7 +78,7 @@ function PillarRow({
 
       {/* % input */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        <input
+        <AppInput
           type="number"
           min={0}
           max={100}
@@ -85,7 +86,7 @@ function PillarRow({
           onChange={(e) =>
             onChange({ ...pillar, pct: Math.max(0, Math.min(100, +e.target.value)) })
           }
-          className="w-12 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white text-right focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
+          className="w-12 text-xs px-2 py-1 text-right"
         />
         <span className="text-xs text-gray-500">%</span>
       </div>
@@ -252,13 +253,13 @@ export default function SettingsPage() {
 
         {/* Add pillar */}
         <div className="flex gap-2">
-          <input
+          <AppInput
             type="text"
             value={newPillarName}
             onChange={(e) => setNewPillarName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") addPillar(); }}
             placeholder="New pillar name…"
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            className="flex-1"
           />
           <button
             onClick={addPillar}
@@ -331,28 +332,28 @@ export default function SettingsPage() {
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Day</label>
-            <select
+            <AppSelect
               value={config.weeklyBatchDay}
               onChange={(e) => setConfig({ ...config, weeklyBatchDay: +e.target.value })}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-auto min-w-[92px]"
             >
               {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
-            </select>
+            </AppSelect>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Hour</label>
-            <input
+            <AppInput
               type="number" min={0} max={23} value={config.weeklyBatchHour}
               onChange={(e) => setConfig({ ...config, weeklyBatchHour: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-20 text-center"
             />
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Minute</label>
-            <input
+            <AppInput
               type="number" min={0} max={59} value={config.weeklyBatchMinute}
               onChange={(e) => setConfig({ ...config, weeklyBatchMinute: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-20 text-center"
             />
           </div>
           <p className="text-xs text-gray-500 pb-2.5">
@@ -370,18 +371,18 @@ export default function SettingsPage() {
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Hour</label>
-            <input
+            <AppInput
               type="number" min={0} max={23} value={config.dailyNewsHour}
               onChange={(e) => setConfig({ ...config, dailyNewsHour: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-20 text-center"
             />
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Minute</label>
-            <input
+            <AppInput
               type="number" min={0} max={59} value={config.dailyNewsMinute}
               onChange={(e) => setConfig({ ...config, dailyNewsMinute: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-20 text-center"
             />
           </div>
           <p className="text-xs text-gray-500 pb-2.5">
@@ -396,28 +397,28 @@ export default function SettingsPage() {
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Day</label>
-            <select
+            <AppSelect
               value={config.blogBatchDay}
               onChange={(e) => setConfig({ ...config, blogBatchDay: +e.target.value })}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-auto min-w-[92px]"
             >
               {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
-            </select>
+            </AppSelect>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Hour</label>
-            <input
+            <AppInput
               type="number" min={0} max={23} value={config.blogBatchHour}
               onChange={(e) => setConfig({ ...config, blogBatchHour: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-20 text-center"
             />
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Minute</label>
-            <input
+            <AppInput
               type="number" min={0} max={59} value={config.blogBatchMinute}
               onChange={(e) => setConfig({ ...config, blogBatchMinute: +e.target.value })}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-20 text-center"
             />
           </div>
           <p className="text-xs text-gray-500 pb-2.5">

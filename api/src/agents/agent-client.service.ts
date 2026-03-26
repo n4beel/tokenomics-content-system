@@ -18,6 +18,7 @@ export class AgentClientService {
   private readonly logger = new Logger(AgentClientService.name);
   private readonly baseUrls: string[];
   private readonly appNameCache = new Map<string, string>();
+  private readonly requestTimeoutMs: number;
 
   constructor(private readonly config: ConfigService) {
     const configuredUrl = this.config.get<string>(
@@ -25,7 +26,17 @@ export class AgentClientService {
       'http://localhost:8000',
     );
     this.baseUrls = this.buildCandidateBaseUrls(configuredUrl);
+    const configuredTimeoutMs = Number(
+      this.config.get<string>('AGENT_REQUEST_TIMEOUT_MS', '5400000'),
+    );
+    this.requestTimeoutMs =
+      Number.isFinite(configuredTimeoutMs) && configuredTimeoutMs >= 60_000
+        ? configuredTimeoutMs
+        : 5_400_000;
     this.logger.log(`Agent service base URL candidates: ${this.baseUrls.join(', ')}`);
+    this.logger.log(
+      `Agent request timeout: ${Math.round(this.requestTimeoutMs / 60_000)} minute(s)`,
+    );
   }
 
   private normalizeBaseUrl(url: string): string {
@@ -173,7 +184,13 @@ export class AgentClientService {
       appName,
       userId,
       sessionId,
-      'Run the full blog pipeline now: pick 2 queued topics, research each, write complete MDX posts, generate hero+OG images, render diagrams, QA validate, and publish drafts. Hard requirements: produce non-empty blog_output content and final blog_qa_result including ALL_PASSED. Do not return progress updates, capability disclaimers, questions, or partial responses. Continue execution until deliverables are complete.',
+      `Run the full blog pipeline now: pick 2 queued topics, research each, write complete MDX posts, generate hero+OG images, render diagrams, QA validate, and publish drafts.
+
+Run ID for this batch: ${batchId}
+Mandatory tool-call rule: For every tool that accepts runId, pass runId="${batchId}".
+Output path rule: Use outputDir values relative to the run, such as "research/<slug>", "blog/<slug>", or "assets/<slug>" (do not use repo-local absolute paths).
+
+Hard requirements: produce non-empty blog_output content and final blog_qa_result including ALL_PASSED. Do not return progress updates, capability disclaimers, questions, or partial responses. Continue execution until deliverables are complete.`,
     );
 
     this.logger.log(`[${batchId}] Blog pipeline complete`);
@@ -235,7 +252,9 @@ export class AgentClientService {
 
     if (lastFailure?.kind === 'timeout') {
       throw new HttpException(
-        'Agent Service request timed out (30m limit reached).',
+        `Agent Service request timed out (${Math.round(
+          this.requestTimeoutMs / 60_000,
+        )}m limit reached).`,
         HttpStatus.GATEWAY_TIMEOUT,
       );
     }
@@ -301,7 +320,7 @@ export class AgentClientService {
             'Content-Type': 'application/json',
             ...(bodyString ? { 'Content-Length': Buffer.byteLength(bodyString) } : {}),
           },
-          timeout: 1000 * 60 * 30,
+          timeout: this.requestTimeoutMs,
         },
         (res) => {
           let data = '';

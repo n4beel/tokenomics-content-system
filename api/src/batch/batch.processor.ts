@@ -112,11 +112,101 @@ abstract class BaseBatchProcessor extends WorkerHost {
         for (const event of result) {
             const delta = event?.actions?.stateDelta;
             if (delta && typeof delta === 'object') {
-                Object.assign(state, delta);
+                for (const [key, value] of Object.entries(delta)) {
+                    // Keep previously collected substantial values instead of overwriting
+                    // them with empty-string placeholders from later model turns.
+                    if (typeof value === 'string' && value.trim().length === 0) {
+                        const existing = state[key];
+                        if (typeof existing === 'string' && existing.trim().length > 0) {
+                            continue;
+                        }
+                    }
+                    state[key] = value;
+                }
             }
         }
 
         return state;
+    }
+
+    private extractBlogOutputFallback(result: any): string {
+        if (!Array.isArray(result)) return '';
+
+        for (let i = result.length - 1; i >= 0; i--) {
+            const event = result[i];
+            const author = String(event?.author || '').toLowerCase();
+            if (!author.includes('sam')) continue;
+
+            const parts = event?.content?.parts;
+            if (!Array.isArray(parts)) continue;
+
+            const text = parts
+                .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
+                .join('\n')
+                .trim();
+
+            if (!text) continue;
+
+            const looksLikeContent =
+                /```mdx|^---|\bBLOG POST\b|\btitle:\b/i.test(text) &&
+                text.length >= 1200;
+
+            if (looksLikeContent) {
+                return text;
+            }
+        }
+
+        return '';
+    }
+
+    private extractBlogOutputFromPublishCalls(result: any): string {
+        if (!Array.isArray(result)) return '';
+
+        const candidates: string[] = [];
+
+        for (const event of result) {
+            const author = String(event?.author || '').toLowerCase();
+            if (!author.includes('sam')) continue;
+
+            const parts = event?.content?.parts;
+            if (!Array.isArray(parts)) continue;
+
+            for (const part of parts) {
+                const call = part?.functionCall;
+                if (!call || call.name !== 'publish_draft_to_cms') continue;
+
+                const content = typeof call?.args?.content === 'string' ? call.args.content : '';
+                if (!content) continue;
+
+                const looksLikeMdx = /(^---\n[\s\S]+?\n---\n)|\btitle:\b/i.test(content);
+                if (looksLikeMdx && content.trim().length >= 400) {
+                    candidates.push(content.trim());
+                }
+            }
+        }
+
+        if (candidates.length === 0) return '';
+
+        // Keep deterministic ordering and avoid duplicates.
+        const unique = [...new Set(candidates)];
+        return unique.join('\n\n<!-- NEXT_POST -->\n\n');
+    }
+
+    private extractQaVerdict(value: unknown): string {
+        const parsed = this.parseJsonSafe(value);
+
+        if (typeof parsed === 'string') {
+            return parsed;
+        }
+
+        if (parsed && typeof parsed === 'object') {
+            const verdict = (parsed as any).verdict;
+            if (typeof verdict === 'string') {
+                return verdict;
+            }
+        }
+
+        return '';
     }
 
     private assertValidResult(job: Job<BatchJobData>, result: any) {
@@ -145,8 +235,12 @@ abstract class BaseBatchProcessor extends WorkerHost {
         }
 
         if (job.data.type === 'blog') {
-            const blogOutput = typeof finalState.blog_output === 'string' ? finalState.blog_output : '';
-            const qaOutput = typeof finalState.blog_qa_result === 'string' ? finalState.blog_qa_result : '';
+            const blogOutputFromState = typeof finalState.blog_output === 'string' ? finalState.blog_output : '';
+            const blogOutput =
+                blogOutputFromState && blogOutputFromState.trim().length >= 400
+                    ? blogOutputFromState
+                    : this.extractBlogOutputFallback(result) || this.extractBlogOutputFromPublishCalls(result);
+            const qaOutput = this.extractQaVerdict(finalState.blog_qa_result);
 
             if (!blogOutput || blogOutput.trim().length < 400) {
                 throw new Error('Blog pipeline completed without usable blog_output content');

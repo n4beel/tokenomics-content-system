@@ -9,7 +9,8 @@ interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function AppButton({ variant = "primary", className = "", children, asLink, href, ...props }: AppButtonProps) {
-    const base = "tm-button tm-button-primary px-4 py-2.5 text-sm";
+    const variantClass = variant === "secondary" ? "tm-button-secondary" : "tm-button-primary";
+    const base = `tm-button ${variantClass} px-4 py-2.5 text-sm`;
     const cls = `${base} ${className}`.trim();
 
     if (asLink && href) {

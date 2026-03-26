@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { AppInput } from "@/components/ui/form-controls";
 
 export default function LoginPage() {
   const { setAuth } = useAuth();
@@ -11,6 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) return err.message;
+    return "Invalid credentials";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +41,8 @@ export default function LoginPage() {
       const data = await res.json();
       setAuth(data.token, data.user);
       router.push("/");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -68,14 +74,13 @@ export default function LoginPage() {
               <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
                 Email
               </label>
-              <input
+              <AppInput
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full bg-[#f4ede4] border border-[#d6cec4] rounded-lg px-3.5 py-2.5 text-sm placeholder-[#9b938a] focus:outline-none focus:ring-2 focus:ring-[var(--institutional-gold)] focus:border-transparent transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -84,14 +89,13 @@ export default function LoginPage() {
               <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
                 Password
               </label>
-              <input
+              <AppInput
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full bg-[#f4ede4] border border-[#d6cec4] rounded-lg px-3.5 py-2.5 text-sm placeholder-[#9b938a] focus:outline-none focus:ring-2 focus:ring-[var(--institutional-gold)] focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>

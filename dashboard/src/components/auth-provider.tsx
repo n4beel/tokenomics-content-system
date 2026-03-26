@@ -32,13 +32,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const timer = setTimeout(() => {
+      const storedToken = localStorage.getItem("auth_token");
+      const storedUser = localStorage.getItem("auth_user");
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+      setIsLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

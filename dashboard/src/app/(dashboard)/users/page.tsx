@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { AppInput } from "@/components/ui/form-controls";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
@@ -9,6 +10,11 @@ interface User {
   id: string;
   email: string;
   createdAt: string;
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return "Operation failed";
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -65,8 +71,8 @@ export default function UsersPage() {
       setNewEmail("");
       setNewPassword("");
       fetchUsers();
-    } catch (err: any) {
-      setCreateError(err.message);
+    } catch (err: unknown) {
+      setCreateError(getErrorMessage(err));
     } finally {
       setCreating(false);
     }
@@ -91,8 +97,8 @@ export default function UsersPage() {
       setPwdSuccess("Password changed successfully");
       setCurrentPwd("");
       setNewPwd("");
-    } catch (err: any) {
-      setPwdError(err.message);
+    } catch (err: unknown) {
+      setPwdError(getErrorMessage(err));
     } finally {
       setChangingPwd(false);
     }
@@ -135,16 +141,15 @@ export default function UsersPage() {
         <SurfaceCard>
           <h2 className="text-sm font-semibold text-white mb-4">Add User</h2>
           <form onSubmit={handleCreateUser} className="space-y-3">
-            <input
+            <AppInput
               id="new-user-email"
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               required
               placeholder="Email"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
-            <input
+            <AppInput
               id="new-user-password"
               type="password"
               value={newPassword}
@@ -152,7 +157,6 @@ export default function UsersPage() {
               required
               placeholder="Password"
               minLength={8}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
             {createError && <p className="text-xs text-red-400">{createError}</p>}
             {createSuccess && <p className="text-xs text-green-400">{createSuccess}</p>}
@@ -171,16 +175,15 @@ export default function UsersPage() {
         <SurfaceCard>
           <h2 className="text-sm font-semibold text-white mb-4">Change My Password</h2>
           <form onSubmit={handleChangePassword} className="space-y-3">
-            <input
+            <AppInput
               id="current-password"
               type="password"
               value={currentPwd}
               onChange={(e) => setCurrentPwd(e.target.value)}
               required
               placeholder="Current password"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
-            <input
+            <AppInput
               id="new-password"
               type="password"
               value={newPwd}
@@ -188,7 +191,6 @@ export default function UsersPage() {
               required
               placeholder="New password"
               minLength={8}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
             {pwdError && <p className="text-xs text-red-400">{pwdError}</p>}
             {pwdSuccess && <p className="text-xs text-green-400">{pwdSuccess}</p>}

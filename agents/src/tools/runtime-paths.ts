@@ -112,3 +112,102 @@ export function resolveWritableOutputDir(preferredDir: string, fallbackDir: stri
 
     return path.resolve(fallbackDir);
 }
+
+function toSafeRelativePath(input: string): string {
+    const normalized = path.posix.normalize(input.replace(/\\/g, '/'));
+    const noLeading = normalized.replace(/^\/+/, '');
+    const cleaned = noLeading
+        .split('/')
+        .filter((segment) => segment && segment !== '.' && segment !== '..')
+        .join('/');
+    return cleaned;
+}
+
+/**
+ * Resolve a shared output root. Prefer attached volume paths when writable.
+ */
+export function resolveOutputRoot(seoRoot: string): string {
+    const configured = process.env.TOKENOMICS_OUTPUT_ROOT;
+    const chromaDir = process.env.CHROMA_DATA_DIR
+        ? path.resolve(process.env.CHROMA_DATA_DIR)
+        : undefined;
+    const candidates = [
+        configured,
+        chromaDir ? path.join(chromaDir, 'tokenomics-output') : undefined,
+        '/data/chroma/tokenomics-output',
+        '/data/tokenomics-output',
+        '/workspace/tokenomics-output',
+        path.join(seoRoot, 'output'),
+    ].filter((p): p is string => !!p);
+
+    for (const candidate of candidates) {
+        try {
+            const resolved = path.resolve(candidate);
+            fs.mkdirSync(resolved, { recursive: true });
+            fs.accessSync(resolved, fs.constants.W_OK);
+            return resolved;
+        } catch {
+            // Try next candidate.
+        }
+    }
+
+    return path.resolve(path.join(seoRoot, 'output'));
+}
+
+function sanitizeRunId(raw?: string): string {
+    const input = (raw || '').trim();
+    if (!input) return '';
+    const safe = input.replace(/[^a-zA-Z0-9._-]/g, '-').replace(/-+/g, '-');
+    return safe.slice(0, 80);
+}
+
+function defaultRunId(): string {
+    const now = new Date();
+    const stamp = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}-${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}${String(now.getUTCSeconds()).padStart(2, '0')}`;
+    return `adhoc-${stamp}`;
+}
+
+export function resolveRunScopedRoot(seoRoot: string, runId?: string): string {
+    const outputRoot = resolveOutputRoot(seoRoot);
+    const resolvedRunId =
+        sanitizeRunId(runId) ||
+        sanitizeRunId(process.env.TOKENOMICS_RUN_ID) ||
+        defaultRunId();
+
+    const runRoot = path.join(outputRoot, 'runs', resolvedRunId);
+    return resolveWritableOutputDir(runRoot, outputRoot);
+}
+
+/**
+ * Constrain requested tool output under the managed output root.
+ */
+export function resolveManagedOutputDir(
+    seoRoot: string,
+    requestedOutputDir?: string,
+    runId?: string,
+): string {
+    const runRoot = resolveRunScopedRoot(seoRoot, runId);
+
+    if (!requestedOutputDir || !requestedOutputDir.trim()) {
+        return runRoot;
+    }
+
+    const requested = requestedOutputDir.trim();
+    let relative = requested;
+
+    if (path.isAbsolute(requested)) {
+        const normalized = requested.replace(/\\/g, '/');
+        const marker = '/output/';
+        const markerIndex = normalized.lastIndexOf(marker);
+        if (markerIndex >= 0) {
+            relative = normalized.slice(markerIndex + marker.length);
+        } else {
+            relative = path.basename(normalized);
+        }
+    }
+
+    const safeRelative = toSafeRelativePath(relative);
+    const target = safeRelative ? path.join(runRoot, safeRelative) : runRoot;
+
+    return resolveWritableOutputDir(target, runRoot);
+}

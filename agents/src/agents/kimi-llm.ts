@@ -104,10 +104,10 @@ export class KimiLlm extends BaseLlm {
       const functionCalls = parts.filter((p: any) => p.functionCall) as Array<Part & { functionCall: FunctionCall }>;
       if (role === 'assistant' && functionCalls.length > 0) {
         const toolCalls: OpenAIToolCall[] = functionCalls.map((p, i) => ({
-          id: `call_${messages.length}_${i}`,
+          id: p.functionCall!.id || `call_${messages.length}_${i}`,
           type: 'function' as const,
           function: {
-            name: p.functionCall!.name!,
+            name: String(p.functionCall!.name || '').trim(),
             arguments: JSON.stringify(p.functionCall!.args ?? {}),
           },
         }));
@@ -127,8 +127,10 @@ export class KimiLlm extends BaseLlm {
       const functionResponses = parts.filter((p: any) => p.functionResponse) as Array<Part & { functionResponse: FunctionResponse }>;
       if (functionResponses.length > 0) {
         for (const p of functionResponses) {
-          // Find matching tool_call_id from the previous assistant message
-          const toolCallId = this.findToolCallId(messages, p.functionResponse!.name!);
+          const preferredId = (p.functionResponse as any)?.id;
+          // Find matching tool_call_id from the previous assistant message.
+          // Prefer the exact functionResponse.id when available.
+          const toolCallId = this.findToolCallId(messages, String(p.functionResponse!.name || ''), preferredId);
           messages.push({
             role: 'tool',
             tool_call_id: toolCallId,
@@ -152,15 +154,19 @@ export class KimiLlm extends BaseLlm {
   }
 
   /** Find tool_call_id for a function name from previous assistant messages */
-  private findToolCallId(messages: OpenAIMessage[], fnName: string): string {
+  private findToolCallId(messages: OpenAIMessage[], fnName: string, preferredId?: string): string {
+    if (preferredId && preferredId.trim()) {
+      return preferredId.trim();
+    }
+    const target = fnName.trim();
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i];
       if (msg.role === 'assistant' && msg.tool_calls) {
-        const tc = msg.tool_calls.find(tc => tc.function.name === fnName);
+        const tc = msg.tool_calls.find(tc => tc.function.name.trim() === target);
         if (tc) return tc.id;
       }
     }
-    return `call_${fnName}`;
+    return `call_${target || 'tool'}`;
   }
 
   // ── Convert ADK tool declarations → OpenAI tools format ──
@@ -174,6 +180,9 @@ export class KimiLlm extends BaseLlm {
     for (const tool of tools) {
       if (tool.functionDeclarations) {
         for (const fn of tool.functionDeclarations) {
+          const name = String(fn.name || '').trim();
+          if (!name) continue;
+
           // ADK functionDeclarations use Gemini-flavored schema types (OBJECT/STRING).
           // Convert to JSON Schema so OpenAI-compatible providers don't ignore tools.
           const parameters = fn.parameters
@@ -183,7 +192,7 @@ export class KimiLlm extends BaseLlm {
           openAITools.push({
             type: 'function',
             function: {
-              name: fn.name,
+              name,
               description: fn.description ?? '',
               parameters,
             },
@@ -248,6 +257,9 @@ export class KimiLlm extends BaseLlm {
   // ── Convert OpenAI response → ADK LlmResponse ──
 
   private toAdkResponse(choice: OpenAIChoice): LlmResponse {
+    const cfg = (this as any)._lastRequestConfig as Record<string, any> | undefined;
+    const allowedToolNames = this.getDeclaredToolNames(cfg);
+
     const msg = choice.message;
     const parts: Part[] = [];
 
@@ -259,6 +271,12 @@ export class KimiLlm extends BaseLlm {
     // Tool calls → functionCall parts
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       for (const tc of msg.tool_calls) {
+        const rawName = tc.function.name ?? '';
+        const sanitizedName = this.resolveToolName(rawName, allowedToolNames);
+        if (!sanitizedName) {
+          continue;
+        }
+
         let args: Record<string, unknown> = {};
         try {
           args = JSON.parse(tc.function.arguments);
@@ -267,16 +285,21 @@ export class KimiLlm extends BaseLlm {
         }
         parts.push({
           functionCall: {
-            name: tc.function.name,
+            name: sanitizedName,
             args,
+            id: tc.id,
           },
         } as Part);
       }
     }
 
-    // Fallback if no parts
+    // Return explicit model error if the provider yields an empty turn.
+    // This prevents outputKey fields from being overwritten with empty strings.
     if (parts.length === 0) {
-      parts.push({ text: '' });
+      return {
+        errorCode: 'UNKNOWN_ERROR',
+        errorMessage: 'Empty model response from Kimi/OpenAI-compatible endpoint',
+      } as LlmResponse;
     }
 
     return {
@@ -314,13 +337,16 @@ export class KimiLlm extends BaseLlm {
     // ADK sets config.responseMimeType = 'application/json' and config.responseSchema
     // when an agent has outputSchema. Convert to OpenAI's response_format.
     const cfg = llmRequest.config as Record<string, any> | undefined;
+    // Stash request config for response normalization (tool name reconciliation).
+    (this as any)._lastRequestConfig = cfg;
+
     if (cfg?.responseMimeType === 'application/json' && cfg?.responseSchema) {
       const jsonSchema = this.geminiSchemaToJsonSchema(cfg.responseSchema);
       body.response_format = {
         type: 'json_schema',
         json_schema: {
           name: 'agent_output',
-          strict: false, // Kimi may not support strict mode fully
+          strict: true,
           schema: jsonSchema,
         },
       };
@@ -332,17 +358,54 @@ export class KimiLlm extends BaseLlm {
       body.temperature = cfg.temperature;
     }
 
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const postCompletion = async (requestBody: Record<string, unknown>) =>
+      fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+    let response = await postCompletion(body);
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorText = await response.text();
+
+      // Some models/providers reject response_format json_schema.
+      // Retry once without response_format so the pipeline can still proceed.
+      if (
+        body.response_format &&
+        [400, 422].includes(response.status) &&
+        /response_format|json_schema|structured output|structured-output/i.test(errorText)
+      ) {
+        const fallbackBody = { ...body };
+        delete fallbackBody.response_format;
+        console.warn('[KimiLlm] response_format rejected by provider, retrying without schema enforcement');
+
+        response = await postCompletion(fallbackBody);
+        if (response.ok) {
+          const data = (await response.json()) as OpenAIResponse;
+          const choice = data.choices?.[0];
+          if (!choice) {
+            yield {
+              content: { role: 'model', parts: [{ text: '[Kimi API Error]: No choices in response' }] },
+            } as LlmResponse;
+            return;
+          }
+          if (data.usage) {
+            console.log(
+              `[KimiLlm] Usage: ${data.usage.prompt_tokens} prompt + ${data.usage.completion_tokens} completion = ${data.usage.total_tokens} total tokens`,
+            );
+          }
+          yield this.toAdkResponse(choice);
+          return;
+        }
+
+        errorText = await response.text();
+      }
+
       console.error(`[KimiLlm] API error ${response.status}: ${errorText}`);
       yield {
         content: {
@@ -375,5 +438,43 @@ export class KimiLlm extends BaseLlm {
   /** Required by BaseLlm for live/streaming sessions — not used for batch. */
   async connect(_llmRequest: LlmRequest): Promise<any> {
     throw new Error('KimiLlm does not support live connections.');
+  }
+
+  private getDeclaredToolNames(cfg?: Record<string, any>): string[] {
+    const tools = cfg?.tools;
+    if (!Array.isArray(tools)) return [];
+
+    const names: string[] = [];
+    for (const tool of tools) {
+      if (!tool?.functionDeclarations || !Array.isArray(tool.functionDeclarations)) continue;
+      for (const fn of tool.functionDeclarations) {
+        const name = String(fn?.name || '').trim();
+        if (name) names.push(name);
+      }
+    }
+    return names;
+  }
+
+  private normalizeToolName(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  }
+
+  private resolveToolName(rawName: string, allowedNames: string[]): string {
+    const trimmed = String(rawName || '').trim();
+    if (!trimmed) return '';
+
+    if (allowedNames.includes(trimmed)) {
+      return trimmed;
+    }
+
+    const normalized = this.normalizeToolName(trimmed);
+    if (!normalized) return trimmed;
+
+    const matches = allowedNames.filter(name => this.normalizeToolName(name) === normalized);
+    if (matches.length === 1) {
+      return matches[0];
+    }
+
+    return trimmed;
   }
 }

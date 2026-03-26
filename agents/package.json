@@ -17,6 +17,7 @@
   "dependencies": {
     "@google/adk": "^0.5.0",
     "@google/genai": "^1.0.0",
+    "@aws-sdk/client-s3": "^3.1008.0",
     "@mermaid-js/mermaid-cli": "^11.12.0",
     "puppeteer": "^23.11.1",
     "sharp": "^0.34.5",

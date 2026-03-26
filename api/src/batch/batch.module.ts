@@ -17,6 +17,7 @@ import {
   DAILY_NEWS_QUEUE,
   WEEKLY_BATCH_QUEUE,
 } from './constants';
+import { CmsPublishService } from './cms-publish.service';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import {
     BlogBatchProcessor,
     DailyNewsProcessor,
     BatchScheduler,
+    CmsPublishService,
   ],
   controllers: [BatchController],
   exports: [BatchService, BatchScheduler],

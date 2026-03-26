@@ -13,17 +13,24 @@ const navigation = [
     ),
   },
   {
-    name: "Batch Review",
+    name: "Weekly Batches",
     href: "/batch",
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
     ),
   },
   {
-    name: "Publishing Queue",
-    href: "/queue",
+    name: "Weekly Blogs",
+    href: "/weekly-blogs",
     icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h12M3 17h8m7-12v12m0 0-3-3m3 3 3-3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 4h10M5 8h14M7 12h10M9 16h6M4 20h16" />
+    ),
+  },
+  {
+    name: "News Reactions",
+    href: "/news-reactions",
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5h14v10H8l-3 3V5Zm3 4h8M8 12h5" />
     ),
   },
   {
@@ -34,7 +41,7 @@ const navigation = [
     ),
   },
   {
-    name: "Analytics",
+    name: "Run Visibility",
     href: "/analytics",
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M7 16l4-5 3 2 4-6" />

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { AppInput } from "@/components/ui/form-controls";
 import { PageHeader } from "@/components/ui/page-header";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -14,6 +15,11 @@ interface VoiceNote {
   transcript: string | null;
   r2Url: string;
   createdAt: string;
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return "Upload failed";
 }
 
 // ── Tag input ────────────────────────────────────────────────────────────────
@@ -32,7 +38,7 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
           <button type="button" onClick={() => onChange(tags.filter((x) => x !== t))} className="hover:text-red-400 transition-colors">×</button>
         </span>
       ))}
-      <input
+      <AppInput
         type="text" value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
@@ -41,7 +47,7 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
         }}
         onBlur={add}
         placeholder={tags.length === 0 ? "Add tags… press Enter" : ""}
-        className="flex-1 min-w-[120px] bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+        className="flex-1 min-w-[120px] bg-transparent border-0 rounded-none p-0 text-white placeholder-gray-500 focus:ring-0"
       />
     </div>
   );
@@ -245,8 +251,8 @@ export default function VoiceNotesPage() {
       discard();
       setTags([]);
       fetchNotes();
-    } catch (err: any) {
-      setUploadMsg({ text: err.message, ok: false });
+    } catch (err: unknown) {
+      setUploadMsg({ text: getErrorMessage(err), ok: false });
     } finally {
       setUploading(false);
     }
@@ -443,10 +449,10 @@ export default function VoiceNotesPage() {
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
               </svg>
-              <input
+              <AppInput
                 type="text" placeholder="Search transcripts…" value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="pl-9 pr-3"
               />
             </div>
           </div>

@@ -15,11 +15,11 @@
  *   npx adk run agent.ts # CLI testing
  *   npx adk api_server . # Production API server
  */
-import { SequentialAgent, LoopAgent, LLMRegistry } from '@google/adk';
-import { KimiLlm } from './agents/kimi-llm.js';
+import { SequentialAgent, LoopAgent } from '@google/adk';
+import { ensureModelRegistry } from './agents/register-models.js';
 
-// Register KimiLlm so model strings like "kimi/kimi-k2.5" resolve automatically
-LLMRegistry.register(KimiLlm);
+// Register custom model connectors once at startup.
+ensureModelRegistry();
 
 import { rileyAgent } from './agents/riley.js';
 import { mayaAgent } from './agents/maya.js';

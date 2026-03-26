@@ -1,0 +1,94 @@
+{
+  "topic": "tokenomics investor documentation",
+  "generatedAt": "2026-03-26T18:31:53.329Z",
+  "focusAreas": [
+    "statistics",
+    "expert-quotes"
+  ],
+  "summary": "Tokenomics investor documentation transforms static token structures into dynamic, interactive presentations that communicate financial potential, investment risks, and capital safeguards to private early investors through Python models, pitch decks, and detailed reports highlighting ROI metrics and growth projections.",
+  "citations": [
+    {
+      "text": "Investor-focused documentation highlights investment opportunity and financial potential, with investors caring about how their investment will grow, what risks are involved, and how the model safeguards their capital",
+      "source": "Black Tokenomics - How to Design Tokenomics",
+      "url": "https://blacktokenomics.com/how-to-design-tokenomics/",
+      "type": "fact"
+    },
+    {
+      "text": "Tokenomics investor documentation includes Python interactive streamlit models, tokenomics slides for pitch decks, and investors reports and documentation",
+      "source": "Black Tokenomics - How to Design Tokenomics",
+      "url": "https://blacktokenomics.com/how-to-design-tokenomics/",
+      "type": "fact"
+    },
+    {
+      "text": "A well-written whitepaper should detail the token's purpose, supply schedule, distribution, and incentive mechanisms with clear token allocation percentages and vesting schedules",
+      "source": "CoW DAO - A Comprehensive Guide to Understanding Tokenomics",
+      "url": "https://cow.fi/learn/a-comprehensive-guide-to-understanding-tokenomics",
+      "type": "fact"
+    }
+  ],
+  "statistics": [
+    {
+      "stat": "TIA listed on 7 exchanges at launch, the most among the sample group, achieving +270% performance within 30 days post-listing",
+      "source": "Tokenomist AI - The Complete Tokenomics Playbook",
+      "url": "https://tokenomist.ai/research/the-complete-tokenomics-playbook-how-to-design-and-launch"
+    },
+    {
+      "stat": "Broad exchange listing can drive strong initial liquidity and visibility when aligned with reasonable FDV and strong demand",
+      "source": "Tokenomist AI - The Complete Tokenomics Playbook",
+      "url": "https://tokenomist.ai/research/the-complete-tokenomics-playbook-how-to-design-and-launch"
+    }
+  ],
+  "expertQuotes": [
+    {
+      "quote": "Investors care about the bottom line: how their investment will grow, what risks are involved, and how the model safeguards their capital.",
+      "name": "Not attributed",
+      "title": "Black Tokenomics Team",
+      "source": "Black Tokenomics - How to Design Tokenomics"
+    }
+  ],
+  "keyFacts": [
+    "Investor documentation must transform static tokenomics into interactive models where investors can simulate scenarios and play with the framework",
+    "Python-based interactive streamlit models are used to simulate, model, and validate tokenomics frameworks with precision for investor presentations",
+    "Allocation distribution dictates how tokens are allocated among stakeholders including team, foundation, investors, community, and ecosystem participants",
+    "Vesting release schedules must follow market standards and best practices to maintain core economic parameters under control",
+    "Well-designed tokenomics with transparent vesting schedules and multi-signature wallets can mitigate rug pull risks by preventing small groups from absolute control",
+    "Clear reporting of supply by issuers versus vague supply reporting creates investor confidence and reduces uncertainty",
+    "Community documentation differs from investor documentation, focusing on token utility flows and incentives rather than ROI metrics",
+    "Investors prefer utility tokens with subscription models, tier systems, governance, staking, and passive income mechanisms that survive bear markets"
+  ],
+  "relatedTopics": [
+    "Token allocation and distribution strategies",
+    "Vesting schedules and unlock mechanisms",
+    "Whitepaper design and transparency standards",
+    "DAO tokenomics and governance structures",
+    "Token utility and incentive mechanisms",
+    "Regulatory compliance in tokenomics design",
+    "Exchange listing strategies and market launch",
+    "Community documentation and communication"
+  ],
+  "_raw": "```json\n{\n  \"summary\": \"Tokenomics investor documentation transforms static token structures into dynamic, interactive presentations that communicate financial potential, investment risks, and capital safeguards to private early investors through Python models, pitch decks, and detailed reports highlighting ROI metrics and growth projections.\",\n  \"citations\": [\n    {\n      \"text\": \"Investor-focused documentation highlights investment opportunity and financial potential, with investors caring about how their investment will grow, what risks are involved, and how the model safeguards their capital\",\n      \"source\": \"Black Tokenomics - How to Design Tokenomics\",\n      \"url\": \"https://blacktokenomics.com/how-to-design-tokenomics/\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"Tokenomics investor documentation includes Python interactive streamlit models, tokenomics slides for pitch decks, and investors reports and documentation\",\n      \"source\": \"Black Tokenomics - How to Design Tokenomics\",\n      \"url\": \"https://blacktokenomics.com/how-to-design-tokenomics/\",\n      \"type\": \"fact\"\n    },\n    {\n      \"text\": \"A well-written whitepaper should detail the token's purpose, supply schedule, distribution, and incentive mechanisms with clear token allocation percentages and vesting schedules\",\n      \"source\": \"CoW DAO - A Comprehensive Guide to Understanding Tokenomics\",\n      \"url\": \"https://cow.fi/learn/a-comprehensive-guide-to-understanding-tokenomics\",\n      \"type\": \"fact\"\n    }\n  ],\n  \"statistics\": [\n    {\n      \"stat\": \"TIA listed on 7 exchanges at launch, the most among the sample group, achieving +270% performance within 30 days post-listing\",\n      \"source\": \"Tokenomist AI - The Complete Tokenomics Playbook\",\n      \"url\": \"https://tokenomist.ai/research/the-complete-tokenomics-playbook-how-to-design-and-launch\"\n    },\n    {\n      \"stat\": \"Broad exchange listing can drive strong initial liquidity and visibility when aligned with reasonable FDV and strong demand\",\n      \"source\": \"Tokenomist AI - The Complete Tokenomics Playbook\",\n      \"url\": \"https://tokenomist.ai/research/the-complete-tokenomics-playbook-how-to-design-and-launch\"\n    }\n  ],\n  \"expertQuotes\": [\n    {\n      \"quote\": \"Investors care about the bottom line: how their investment will grow, what risks are involved, and how the model safeguards their capital.\",\n      \"name\": \"Not attributed\",\n      \"title\": \"Black Tokenomics Team\",\n      \"source\": \"Black Tokenomics - How to Design Tokenomics\"\n    }\n  ],\n  \"keyFacts\": [\n    \"Investor documentation must transform static tokenomics into interactive models where investors can simulate scenarios and play with the framework\",\n    \"Python-based interactive streamlit models are used to simulate, model, and validate tokenomics frameworks with precision for investor presentations\",\n    \"Allocation distribution dictates how tokens are allocated among stakeholders including team, foundation, investors, community, and ecosystem participants\",\n    \"Vesting release schedules must follow market standards and best practices to maintain core economic parameters under control\",\n    \"Well-designed tokenomics with transparent vesting schedules and multi-signature wallets can mitigate rug pull risks by preventing small groups from absolute control\",\n    \"Clear reporting of supply by issuers versus vague supply reporting creates investor confidence and reduces uncertainty\",\n    \"Community documentation differs from investor documentation, focusing on token utility flows and incentives rather than ROI metrics\",\n    \"Investors prefer utility tokens with subscription models, tier systems, governance, staking, and passive income mechanisms that survive bear markets\"\n  ],\n  \"relatedTopics\": [\n    \"Token allocation and distribution strategies\",\n    \"Vesting schedules and unlock mechanisms\",\n    \"Whitepaper design and transparency standards\",\n    \"DAO tokenomics and governance structures\",\n    \"Token utility and incentive mechanisms\",\n    \"Regulatory compliance in tokenomics design\",\n    \"Exchange listing strategies and market launch\",\n    \"Community documentation and communication\"\n  ]\n}\n```",
+  "_model": "perplexity/sonar",
+  "_usage": {
+    "prompt_tokens": 394,
+    "completion_tokens": 900,
+    "total_tokens": 1294,
+    "cost": 0.00629,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00629,
+      "upstream_inference_prompt_cost": 0.000394,
+      "upstream_inference_completions_cost": 0.005896
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

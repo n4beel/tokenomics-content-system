@@ -131,9 +131,6 @@ export default function RunDetailPage({ params }: RunPageProps) {
     useEffect(() => {
         if (!batchId || !token) return;
 
-        setLoading(true);
-        setError(null);
-
         fetch(`${API}/api/batch/runs/${encodeURIComponent(batchId)}`, {
             headers: { Authorization: `Bearer ${token}` },
         })

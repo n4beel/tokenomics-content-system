@@ -4,15 +4,16 @@ import { execFile } from 'child_process';
 import path from 'path';
 import {
   buildToolEnv,
+  resolveManagedOutputDir,
   resolveNodeExec,
   resolveSeoRoot,
-  resolveWritableOutputDir,
 } from './runtime-paths.js';
 
 const researchParams = z.object({
   topic: z.string().describe('The topic or keyword to research'),
   focus: z.string().optional().describe('Comma-separated focus areas, e.g. "statistics,expert-quotes"'),
   outputDir: z.string().optional().describe('Output directory for the research brief'),
+  runId: z.string().optional().describe('Run identifier (e.g. blog-abc12345) used to scope outputs under /runs/<runId>/'),
 });
 
 export const researchTool = new FunctionTool({
@@ -20,13 +21,14 @@ export const researchTool = new FunctionTool({
   description: 'Research a topic using Perplexity Sonar via OpenRouter. Returns a structured brief with citations, statistics, expert quotes, and key facts for GEO-optimized blog writing.',
   parameters: researchParams as any,
   execute: async (args: any) => {
-    const { topic, focus, outputDir } = args;
+    const { topic, focus, outputDir, runId } = args;
     const seoRoot = resolveSeoRoot(['scripts/research-pipeline.mjs']);
     const nodeExec = resolveNodeExec();
     const script = path.join(seoRoot, 'scripts', 'research-pipeline.mjs');
-    const safeOutputDir = resolveWritableOutputDir(
-      outputDir || path.join(seoRoot, 'output', 'research'),
-      path.join(seoRoot, 'output', 'research'),
+    const safeOutputDir = resolveManagedOutputDir(
+      seoRoot,
+      outputDir || 'research',
+      runId,
     );
     const toolEnv = buildToolEnv(seoRoot);
     const cmdArgs = ['research', topic];
