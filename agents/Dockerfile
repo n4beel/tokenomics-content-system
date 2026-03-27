@@ -25,11 +25,7 @@ WORKDIR /app
 RUN uvx "chroma-mcp==0.2.6" --help > /dev/null 2>&1 || true
 # Pre-download ONNX embedding model into image so chroma_query_documents
 # doesn't download 79 MB from S3 at runtime on every container start
-RUN python3 -c "\
-    from chromadb.utils.embedding_functions import DefaultEmbeddingFunction; \
-    ef = DefaultEmbeddingFunction(); \
-    ef(['warmup']); \
-    print('ONNX model pre-cached')"
+RUN python3 -c "from chromadb.utils.embedding_functions import DefaultEmbeddingFunction; ef = DefaultEmbeddingFunction(); ef(['warmup']); print('ONNX model pre-cached')"
 
 COPY package*.json ./
 RUN npm ci
