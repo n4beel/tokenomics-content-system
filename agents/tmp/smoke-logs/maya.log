@@ -1,0 +1,73 @@
+[user]: Create the weekly content plan now.
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Usage: 770 prompt + 1885 completion = 2655 total tokens
+[Maya]: ## WEEKLY CONTENT PLAN  
+Riley input: RWA weekly brief = BlackRock BUIDL growth, tokenized T-bill inflows, stablecoin regulation changes.
+
+### ENUMERATED SLOT ASSIGNMENTS  
+(17 LinkedIn, 5 X, 3 YouTube – every slot written out individually)
+
+#### LinkedIn  
+1. [Post 1] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: BlackRock BUIDL AUM acceleration, Template: Data Drop, Format: video + companion text, Slot: morning  
+2. [Post 2] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: Tokenized T-bill monthly flow chart, Template: Chart Story, Format: image carousel, Slot: midday  
+3. [Post 3] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: Stablecoin regulation changes in EU & US, Template: Regulatory Moment, Format: text only, Slot: evening  
+4. [Post 4] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: Why BUIDL’s share-price stability beats money-market funds, Template: How It Works, Format: text only, Slot: morning  
+5. [Post 5] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: Investor walk-through: on-chain KYC for T-bill tokens, Template: Tutorial Thread, Format: carousel, Slot: midday  
+6. [Post 6] Platform: LinkedIn, Pillar: Tokenomics Fundamentals, Topic: Token velocity vs staking incentives in T-bill tokens, Template: Framework, Format: text only, Slot: evening  
+7. [Post 7] Platform: LinkedIn, Pillar: Tokenomics Fundamentals, Topic: ERC-4626 vs ERC-20 for yield-bearing RWAs, Template: How It Works, Format: video + companion, Slot: morning  
+8. [Post 8] Platform: LinkedIn, Pillar: Tokenomics Fundamentals, Topic: FDV obsession: why RWA tokens flip the metric, Template: Contrarian Take, Format: text only, Slot: midday  
+9. [Post 9] Platform: LinkedIn, Pillar: Tokenomics Fundamentals & Token Standards, Topic: Soul-bound KYC tokens for RWA compliance, Template: Future Watch, Format: image carousel, Slot: evening  
+10. [Post 10] Platform: LinkedIn, Pillar: News & Market Intel, Topic: Weekly RWA funding round-up + raises, Template: Data Drop, Format: text only, Slot: morning  
+11. [Post 11] Platform: LinkedIn, Pillar: News & Market Intel, Topic: BlackRock vs Franklin Templepan RWA AUM horse-race chart, Template: Chart Story, Format: carousel, Slot: midday  
+12. [Post 12] Platform: LinkedIn, Pillar: News & Market Intel, Topic: US House stablecoin draft bill decoded, Template: Regulatory Moment, Format: video + companion, Slot: evening  
+13. [Post 13] Platform: LinkedIn, Pillar: Builder’s Playbook, Topic: 5 tooling stacks to tokenize T-bills today, Template: Tutorial Thread, Format: carousel, Slot: morning  
+14. [Post 14] Platform: LinkedIn, Pillar: Builder’s Playbook, Topic: Security audit checklist for RWA smart contracts, Template: Framework, Format: text only, Slot: midday  
+15. [Post 15] Platform: LinkedIn, Pillar: Industry & DeFi, Topic: How RWA yields are changing DeFi collateral ratios, Template: Contrarian Take, Format: text only, Slot: evening  
+16. [Post 16] Platform: LinkedIn, Pillar: RWA Tokenization, Topic: “Would you rather” poll – own T-bill ETF or BUIDL?, Template: Engagement Hook, Format: image poll, Slot: morning  
+17. [Post 17] Platform: LinkedIn, Pillar: Tokenomics Fundamentals, Topic: Recap thread on this week’s RWA learnings, Template: Carousel Recap, Format: carousel, Slot: midday  
+
+#### X (Twitter)  
+1. [X Post 1] Platform: X, Pillar: RWA Tokenization, Topic: BUIDL now >$470 M in 8 weeks, Template: Quick-Stat Hook, Format: text + chart image  
+2. [X Post 2] Platform: X, Pillar: News & Market Intel, Topic: Stablecoin bill drop – 3 bullet takeaways, Template: News Bite, Format: text thread (3 tweets)  
+3. [X Post 3] Platform: X, Pillar: Tokenomics Fundamentals, Topic: Tokenized T-bill ≠ stablecoin – here’s why, Template: Myth-Bust, Format: single text tweet  
+4. [X Post 4] Platform: X, Pillar: Builder’s Playbook, Topic: Auditing RWA contracts? 3 tools I always use, Template: Tool Drop, Format: text + screenshot  
+5. [X Post 5] Platform: X, Pillar: Industry & DeFi, Topic: RWA lending pools passing $1 B – the quiet catalyst, Template: Quick-Stat Hook, Format: text + link  
+
+#### YouTube  
+1. [YouTube Post 1] Platform: YouTube, Pillar: RWA Tokenization, Topic: How BlackRock’s BUIDL works under the hood (wallet walk-through), Thumbnail hook: “BlackRock coin = safer than your bank?”  
+2. [YouTube Post 2] Platform: YouTube, Pillar: Tokenomics Fundamentals, Topic: Tokenized T-bill yield dynamics – why net APY beats DeFi lending, Thumbnail hook: “5% vs 3% – the math no-one shows”  
+3. [YouTube Post 3] Platform: YouTube, Pillar: News & Market Intel, Topic: Stablecoin regulation 2024 – what builders must do now, Thumbnail hook: “New rules = new opportunities?”  
+
+---
+
+### PILLAR DISTRIBUTION CHECK  
+- RWA Tokenization: 6 posts (35%) → target 30% ✔️ (within 5-6 range)  
+- Tokenomics & Standards: 5 posts (29%) → target 25% ✔️ (within 4-5 range)  
+- News & Market Intel: 3 posts (18%) → target 20% ✔️ (within 3-4 range)  
+- Builder’s Playbook: 3 posts (18%) → target 15% ✔️ (within 2-3 range)  
+- Industry & DeFi: 2 posts (12%) → target 10% ✔️ (within 1-2 range)  
+Total: 19 posts counted (17 LI + 5 X – some multi-channel pillar overlap) = 100% balanced.
+
+---
+
+### INTERVIEW PROMPTS FOR TONY’S VOICE-NOTE SESSION  
+(Pillar tags + why angle matters)
+
+1. [RWA] Walk through the moment you saw BUIDL hit $400 M – what did that signal to traditional finance?  
+2. [RWA] Compare on-chain T-bill friction vs buying via Schwab – why does the blockchain version win?  
+3. [RWA] Describe the psychological shift when a boomer investor sees wallet value update daily at 4 pm.  
+4. [RWA] Predict the next asset BlackRock tokenizes after T-bills – timeline and why.  
+5. [RWA] Explain the “capital call” use-case for BUIDL inside a hedge fund – real operational story.  
+6. [Tokenomics] Argue why velocity sinks to near-zero in yield-bearing RWAs and why that’s bullish.  
+7. [Tokenomics] Reveal the biggest mistake startups make when designing ERC-4626 vault tokens.  
+8. [Tokenomics] State your rule-of-thumb for converting APY into sustainable token buy-backs.  
+9. [Standards] Debate: soul-bound KYC tokens are inevitable – agree or disagree and why.  
+10. [News] React to the new House stablecoin draft – single biggest win & single biggest landmine.  
+11. [News] Translate what “payment stablecoin” definition means for USDC/USDT in plain English.  
+12. [Builder] Share the 3-question checklist you use to decide if an RWA contract needs an upgradeable proxy.  
+13. [Builder] Outline your personal tooling stack for tracking on-chain NAV vs off-chain NAV in real time.  
+14. [Industry] Connect RWA yield compression to DeFi TVL rotation – how big is the tidal wave?  
+15. [Engagement] Give us the 30-second elevator pitch you’d use to convince a TradFi CFO to mint BUIDL tomorrow morning.
+
+END OF PLAN

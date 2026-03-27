@@ -1,0 +1,10 @@
+[user]: Run quality gate review now.
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Usage: 638 prompt + 71 completion = 709 total tokens
+[MayaQA]: I need to see the actual drafts to perform the quality gate review. Please share:
+
+1. The complete set of 25 drafted posts 
+2. The content plan they should map against
+
+Once I have the drafts array with all posts, I'll run the full QA checklist against each piece of content and provide the verdict with specific feedback for any failures.

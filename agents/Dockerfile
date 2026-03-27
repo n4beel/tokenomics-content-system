@@ -6,7 +6,7 @@ FROM node:20-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python-is-python3 curl \
     && ln -sf /usr/bin/python3 /python \
-    && python3 -m pip install --no-cache-dir --break-system-packages chroma-mcp \
+    && python3 -m pip install --no-cache-dir --break-system-packages "chroma-mcp==0.2.6" \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -21,8 +21,15 @@ ENV TOKENIZERS_PARALLELISM=false
 
 WORKDIR /app
 
-# Pre-warm chroma-mcp into the uv cache so first run is fast
-RUN uvx chroma-mcp --help > /dev/null 2>&1 || true
+# Pre-warm uvx chroma-mcp environment (used on local / non-Railway path)
+RUN uvx "chroma-mcp==0.2.6" --help > /dev/null 2>&1 || true
+# Pre-download ONNX embedding model into image so chroma_query_documents
+# doesn't download 79 MB from S3 at runtime on every container start
+RUN python3 -c "\
+from chromadb.utils.embedding_functions import DefaultEmbeddingFunction; \
+ef = DefaultEmbeddingFunction(); \
+ef(['warmup']); \
+print('ONNX model pre-cached')"
 
 COPY package*.json ./
 RUN npm ci

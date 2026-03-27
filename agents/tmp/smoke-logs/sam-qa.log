@@ -1,0 +1,6 @@
+[user]: Run QA checks now.
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Using model=moonshotai/kimi-k2-0905 via https://openrouter.ai/api/v1
+[KimiLlm] Enforcing JSON schema output via response_format
+[KimiLlm] Usage: 1097 prompt + 43 completion = 1140 total tokens
+[SamQA]: {"checks":[],"summary":"session_state.blog_output missing; cannot run checks","totals":{"checksFailed":0,"checksPassed":0,"checksRun":0},"verdict":"NEEDS_REWRITE"}
