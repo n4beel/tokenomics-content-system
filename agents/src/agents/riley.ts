@@ -95,6 +95,15 @@ Your output must be structured as:
       serverParams: {
         command: CHROMA_MCP_COMMAND,
         args: CHROMA_SERVER_ARGS,
+        // Explicitly pass env so subprocess inherits thread-limiting vars
+        // (MCP SDK's StdioClientTransport defaults to a filtered "safe" env
+        // that omits OPENBLAS_NUM_THREADS, causing OpenBLAS to spawn 32 threads
+        // per chroma-mcp subprocess and hit Railway's process limits)
+        env: Object.fromEntries(
+          Object.entries(process.env).filter(
+            (entry): entry is [string, string] => entry[1] !== undefined
+          )
+        ),
       },
     }),
   ],
