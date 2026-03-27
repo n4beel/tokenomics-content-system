@@ -13,8 +13,9 @@ const MODEL =
 const __dir = fileURLToPath(new URL('.', import.meta.url));
 const CHROMA_DATA_DIR = process.env.CHROMA_DATA_DIR
   ? resolve(process.env.CHROMA_DATA_DIR)
-  : resolve(__dir, 'data', 'chroma');
-const CHROMA_MCP_COMMAND = (process.env.CHROMA_MCP_COMMAND || 'chroma-mcp').trim();
+  : resolve(__dir, '..', '..', 'data', 'chroma');
+const DEFAULT_CHROMA_COMMAND = process.env.RAILWAY_ENVIRONMENT ? 'chroma-mcp' : 'uvx';
+const CHROMA_MCP_COMMAND = (process.env.CHROMA_MCP_COMMAND || DEFAULT_CHROMA_COMMAND).trim();
 const CHROMA_MCP_ARGS = [
   '--client-type', 'persistent',
   '--data-dir', CHROMA_DATA_DIR,

@@ -13,6 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Add uv/uvx to PATH
 ENV PATH="/root/.local/bin:$PATH"
 ENV UV_PYTHON=/usr/bin/python3
+ENV OPENBLAS_NUM_THREADS=1
+ENV OMP_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV NUMEXPR_NUM_THREADS=1
+ENV TOKENIZERS_PARALLELISM=false
 
 WORKDIR /app
 

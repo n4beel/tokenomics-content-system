@@ -84,8 +84,13 @@ function parseDotEnvFile(filePath: string): Record<string, string> {
  */
 export function buildToolEnv(seoRoot: string): NodeJS.ProcessEnv {
     const agentRoot = path.resolve(__dirname, '../..');
+    const repoRoot = path.resolve(agentRoot, '..');
+    const apiRoot = path.join(repoRoot, 'api');
     const merged = {
+        ...parseDotEnvFile(path.join(repoRoot, '.env')),
         ...parseDotEnvFile(path.join(agentRoot, '.env')),
+        ...parseDotEnvFile(path.join(apiRoot, '.env')),
+        ...parseDotEnvFile(path.join(apiRoot, '.env.local')),
         ...parseDotEnvFile(path.join(seoRoot, '.env')),
         ...parseDotEnvFile(path.join(seoRoot, '.env.local')),
         ...process.env,
