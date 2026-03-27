@@ -21,7 +21,7 @@ const CHROMA_MCP_COMMAND = (process.env.CHROMA_MCP_COMMAND || DEFAULT_CHROMA_COM
 // On Railway: connect to the persistent ChromaDB HTTP server started by docker-entrypoint.sh.
 // This avoids loading the 79 MB ONNX model in every chroma-mcp subprocess spawn.
 const CHROMA_MCP_ARGS = process.env.RAILWAY_ENVIRONMENT
-  ? ['--client-type', 'http', '--host', '127.0.0.1', '--port', CHROMA_HTTP_PORT]
+  ? ['--client-type', 'http', '--host', '127.0.0.1', '--port', CHROMA_HTTP_PORT, '--ssl', 'false']
   : ['--client-type', 'persistent', '--data-dir', CHROMA_DATA_DIR];
 const CHROMA_SERVER_ARGS =
   CHROMA_MCP_COMMAND === 'uvx'
