@@ -15,12 +15,14 @@ const CHROMA_DATA_DIR = process.env.CHROMA_DATA_DIR
   ? resolve(process.env.CHROMA_DATA_DIR)
   : resolve(__dir, '..', '..', 'data', 'chroma');
 const CHROMA_MCP_PACKAGE = process.env.CHROMA_MCP_PACKAGE ?? "chroma-mcp==0.2.6";
+const CHROMA_HTTP_PORT = process.env.CHROMA_HTTP_PORT || '8001';
 const DEFAULT_CHROMA_COMMAND = process.env.RAILWAY_ENVIRONMENT ? 'chroma-mcp' : 'uvx';
 const CHROMA_MCP_COMMAND = (process.env.CHROMA_MCP_COMMAND || DEFAULT_CHROMA_COMMAND).trim();
-const CHROMA_MCP_ARGS = [
-  '--client-type', 'persistent',
-  '--data-dir', CHROMA_DATA_DIR,
-];
+// On Railway: connect to the persistent ChromaDB HTTP server started by docker-entrypoint.sh.
+// This avoids loading the 79 MB ONNX model in every chroma-mcp subprocess spawn.
+const CHROMA_MCP_ARGS = process.env.RAILWAY_ENVIRONMENT
+  ? ['--client-type', 'http', '--host', '127.0.0.1', '--port', CHROMA_HTTP_PORT]
+  : ['--client-type', 'persistent', '--data-dir', CHROMA_DATA_DIR];
 const CHROMA_SERVER_ARGS =
   CHROMA_MCP_COMMAND === 'uvx'
     ? [CHROMA_MCP_PACKAGE, "--client-type", "persistent", "--data-dir", CHROMA_DATA_DIR]
