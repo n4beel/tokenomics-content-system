@@ -21,7 +21,8 @@ import { ensureModelRegistry } from './agents/register-models.js';
 // Register custom model connectors once at startup.
 ensureModelRegistry();
 
-import { rileyAgent } from './agents/riley.js';
+import { createRileyAgent } from './agents/riley.js';
+const rileyAgent = createRileyAgent();
 import { mayaAgent } from './agents/maya.js';
 import { quillAgent } from './agents/quill.js';
 import { mayaQaAgent } from './agents/maya-qa.js';

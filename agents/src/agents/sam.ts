@@ -16,6 +16,7 @@ const MODEL =
 export const samAgent = new LlmAgent({
   name: 'Sam',
   model: MODEL,
+  includeContents: 'none',
   description:
     'Sam is the SEO/blog agent. Writes SEO+GEO optimized MDX blog posts using a strict template, generates images and diagrams, and publishes drafts to Payload CMS.',
   outputKey: 'blog_output',

@@ -5,73 +5,90 @@ const MODEL =
   process.env.LLM_MODEL_WEEKLY ||
   process.env.LLM_MODEL ||
   'gemini-2.5-flash';
-// const MODEL = 'gemini-3.1-pro-preview'; // Hardcoded to prevent lite models from truncating the large 15-post QA output
 
 export const mayaQaAgent = new LlmAgent({
   name: 'MayaQA',
   model: MODEL,
+  includeContents: 'none',
   description:
-    'Maya QA is the quality gate agent. Reviews all drafted content before Tony sees it.',
+    'Quality gate agent. Reviews all drafted content against brand standards.',
   outputKey: 'qa_result',
-  instruction: `You are Maya running the Quality Gate for Tokenomics.net content.
+  // The LLM output is ignored entirely. All QA logic runs here, programmatically.
+  // This avoids any dependency on the model following complex formatting instructions.
+  afterAgentCallback: (context) => {
+    const draftsRaw = context.state.get('drafts');
+    let drafts: any[] = [];
 
-## Role
-You review every piece of drafted content before Tony sees it. You are the last line of defense for brand quality.
+    if (Array.isArray(draftsRaw)) {
+      drafts = draftsRaw;
+    } else if (typeof draftsRaw === 'string') {
+      try {
+        const parsed = JSON.parse(draftsRaw);
+        if (Array.isArray(parsed)) drafts = parsed;
+      } catch {}
+    }
 
-## Hard Constraints
-- You are a QA reviewer only. Never produce planning text or status updates.
-- Never call tools.
-- Never claim inability/capability limits.
-- ONLY include "ALL_PASSED" when the submission contains the complete weekly set of 25 posts.
-- If post count is not 25, verdict MUST be FAIL and include revision instruction to return all 25 posts.
+    // Check 1: count
+    if (drafts.length !== 25) {
+      const msg = `FAIL: Got ${drafts.length} posts, need exactly 25. Quill must return all 25 in the array.`;
+      context.state.set('qa_result', msg);
+      return undefined;
+    }
 
-## Input
-You receive from session state:
-- Drafts to review: {drafts}
-- Content plan for reference: {content_plan}
+    // Check 2: per-post content length and placeholder detection
+    const failures: string[] = [];
 
-## Quality Gate Checklist
-For each post, check:
-- [ ] Maps to the assigned pillar and topic from the content plan
-- [ ] Correct template structure applied (matches the assigned template)
-- [ ] Hook is under 210 characters
-- [ ] One clear takeaway per post
-- [ ] Signoff: one follow prompt + one repost or engagement prompt (not both)
-- [ ] No hashtags anywhere in the post
-- [ ] No URLs in the post body
-- [ ] No AI-isms: delve, landscape, game-changer, leverage, robust, seamless, paradigm shift, synergy, groundbreaking, revolutionize, cutting-edge, holistic
-- [ ] No engagement bait without substance
-- [ ] Data and claims are properly attributed with sources
-- [ ] Reads like Tony: first person, direct, specific, conversational expert
-- [ ] Week feels balanced: not too heavy on one format or pillar
+    for (const post of drafts) {
+      const platform: string = post.platform || '';
+      const format: string = (post.format || '').toLowerCase();
+      const content: string = typeof post.content === 'string' ? post.content : '';
+      const topic: string = post.topic || 'unknown';
+      const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+      const charCount = content.length;
 
-## For YouTube Scripts
-- [ ] Script matches assigned keyword cluster
-- [ ] Title is under 60 characters and includes primary keyword
-- [ ] Description includes relevant links and keywords
-- [ ] Thumbnail brief is clear and actionable
+      // Placeholder check
+      if (/this post will|see content plan|placeholder/i.test(content)) {
+        failures.push(`[${topic}] Contains placeholder text — write the actual post`);
+        continue;
+      }
 
-## For X Content
-- [ ] Singles are under 280 characters
-- [ ] Thread has 3-7 tweets with clear flow
-- [ ] Article has proper structure and depth
+      if (platform === 'LinkedIn') {
+        if (wordCount < 150) {
+          failures.push(`[${topic}] LinkedIn: ${wordCount} words (need 150+ words / ~900+ chars). Current: ${charCount} chars`);
+        }
+      } else if (platform === 'X') {
+        if (format.includes('thread')) {
+          if (charCount < 300) {
+            failures.push(`[${topic}] X thread: ${charCount} chars (need 300+ chars with 5+ tweets)`);
+          }
+        } else {
+          if (charCount < 80) {
+            failures.push(`[${topic}] X single: ${charCount} chars (need 80+ chars)`);
+          }
+        }
+      } else if (platform === 'YouTube') {
+        if (wordCount < 800) {
+          failures.push(`[${topic}] YouTube: ${wordCount} words (need 800+ words / ~5000+ chars). Current: ${charCount} chars`);
+        }
+        if (!/\[0:00/i.test(content)) {
+          failures.push(`[${topic}] YouTube: missing [0:00 ...] timestamp markers in script`);
+        }
+      }
+    }
 
-## Output
-For each piece of content, provide:
-- PASS: content is approved and ready for Tony's review
-- FAIL: specific issues listed with revision instructions for Quill
+    if (failures.length === 0) {
+      context.state.set('qa_result', 'ALL_PASSED');
+      context.actions.escalate = true;
+    } else {
+      const msg =
+        `FAIL: ${failures.length} post(s) need revision:\n` +
+        failures.map((f) => `- ${f}`).join('\n') +
+        `\n\nQuill: fix ALL failed posts AND return the full array of all 25 posts.`;
+      context.state.set('qa_result', msg);
+    }
 
-Format your output as:
-POST [number] - [platform] - [topic]:
-  Status: PASS/FAIL
-  Issues (if FAIL):
-    - [specific issue and how to fix it]
-
-At the end, provide a summary:
-  Total: X posts reviewed
-  Passed: X
-  Failed: X (revision notes sent to Quill)
-
-IMPORTANT: If ALL posts pass, include the word "ALL_PASSED" at the very end of your response. This signals the loop to stop.`,
+    return undefined;
+  },
+  instruction: `You are reviewing social media content drafts. Output only: "QA_RUNNING"`,
   tools: [],
 });

@@ -75,6 +75,7 @@ const SamQaOutputSchema: Schema = {
 export const samQaAgent = new LlmAgent({
   name: 'SamQA',
   model: MODEL,
+  includeContents: 'none',
   description: 'SamQA validates blog posts against the full GEO + SEO + brand voice + frontmatter QC checklist.',
   outputKey: 'blog_qa_result',
   outputSchema: SamQaOutputSchema,

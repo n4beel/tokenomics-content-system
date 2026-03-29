@@ -18,7 +18,9 @@ export class AgentClientService {
   private readonly logger = new Logger(AgentClientService.name);
   private readonly baseUrls: string[];
   private readonly appNameCache = new Map<string, string>();
-  private readonly requestTimeoutMs: number;
+  readonly requestTimeoutMs: number;
+  /** Base URL the agents service will POST callbacks to (this API). */
+  readonly callbackBaseUrl: string;
 
   constructor(private readonly config: ConfigService) {
     const configuredUrl = this.config.get<string>(
@@ -33,10 +35,14 @@ export class AgentClientService {
       Number.isFinite(configuredTimeoutMs) && configuredTimeoutMs >= 60_000
         ? configuredTimeoutMs
         : 5_400_000;
+    this.callbackBaseUrl = this.config
+      .get<string>('API_CALLBACK_BASE_URL', 'http://localhost:3000/api')
+      .replace(/\/+$/, '');
     this.logger.log(`Agent service base URL candidates: ${this.baseUrls.join(', ')}`);
     this.logger.log(
       `Agent request timeout: ${Math.round(this.requestTimeoutMs / 60_000)} minute(s)`,
     );
+    this.logger.log(`Agent callback base URL: ${this.callbackBaseUrl}`);
   }
 
   private normalizeBaseUrl(url: string): string {
@@ -218,6 +224,273 @@ Hard requirements: produce non-empty blog_output content and final blog_qa_resul
 
     this.logger.log(`[${batchId}] Daily news scan complete`);
     return result;
+  }
+
+  /**
+   * Fire-and-forget: POST to /run-async on agents.
+   * Agents will push each event back via HTTP POST to callbackUrl/{event,done,error}.
+   */
+  async startRunAsync(
+    appName: string,
+    userId: string,
+    sessionId: string,
+    message: string,
+    callbackUrl: string,
+  ): Promise<void> {
+    await this.request('POST', '/run-async', {
+      appName,
+      userId,
+      sessionId,
+      newMessage: { role: 'user', parts: [{ text: message }] },
+      callbackUrl,
+    });
+  }
+
+  async startWeeklyPipelineAsync(batchId: string): Promise<void> {
+    const appName = await this.resolveAppName('weekly', ['agent', 'src']);
+    const userId = 'system';
+    const sessionId = `batch-${batchId}`;
+    const callbackUrl = `${this.callbackBaseUrl}/internal/batch/${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for weekly pipeline...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Starting weekly pipeline async (events → ${callbackUrl})...`);
+    await this.startRunAsync(
+      appName,
+      userId,
+      sessionId,
+      'Generate weekly research brief. Query the tokenomics_news ChromaDB collection. Output must begin with exactly: # RESEARCH BRIEF',
+      callbackUrl,
+    );
+  }
+
+  async startBlogPipelineAsync(batchId: string): Promise<void> {
+    const appName = await this.resolveAppName('blog', ['sam-pipeline', 'src']);
+    const userId = 'system';
+    const sessionId = `blog-${batchId}`;
+    const callbackUrl = `${this.callbackBaseUrl}/internal/batch/${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for blog pipeline...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Starting blog pipeline async (events → ${callbackUrl})...`);
+    await this.startRunAsync(
+      appName,
+      userId,
+      sessionId,
+      `Run the full blog pipeline now: pick 2 queued topics, research each, write complete MDX posts, generate hero+OG images, render diagrams, QA validate, and publish drafts.
+
+Run ID for this batch: ${batchId}
+Mandatory tool-call rule: For every tool that accepts runId, pass runId="${batchId}".
+Output path rule: Use outputDir values relative to the run, such as "research/<slug>", "blog/<slug>", or "assets/<slug>" (do not use repo-local absolute paths).
+
+Hard requirements: produce non-empty blog_output content and final blog_qa_result including ALL_PASSED. Do not return progress updates, capability disclaimers, questions, or partial responses. Continue execution until deliverables are complete.`,
+      callbackUrl,
+    );
+  }
+
+  async startDailyNewsScanAsync(batchId: string): Promise<void> {
+    const appName = await this.resolveAppName('daily-news', ['agent', 'src']);
+    const userId = 'system';
+    const sessionId = `news-${batchId}`;
+    const callbackUrl = `${this.callbackBaseUrl}/internal/batch/${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for daily news scan...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Starting daily news scan async (events → ${callbackUrl})...`);
+    await this.startRunAsync(
+      appName,
+      userId,
+      sessionId,
+      'Generate the daily news brief. Quick scan overnight news, identify time-sensitive items that warrant same-day reaction, note anything worth watching but not urgent, flag creator alerts.',
+      callbackUrl,
+    );
+  }
+
+  /**
+   * SSE streaming request to /run-sse.
+   * Calls onEvent for each ADK event as it arrives from the stream.
+   */
+  private async requestSSE(
+    urlString: string,
+    body: unknown,
+    onEvent: (event: unknown) => void,
+  ): Promise<void> {
+    const url = new URL(urlString);
+    const client = url.protocol === 'https:' ? https : http;
+    const bodyString = JSON.stringify(body);
+
+    return new Promise<void>((resolve, reject) => {
+      const req = client.request(
+        url,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+            'Content-Length': Buffer.byteLength(bodyString),
+          },
+          timeout: this.requestTimeoutMs,
+        },
+        (res) => {
+          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+            reject({ kind: 'http', status: res.statusCode, message: `HTTP ${res.statusCode}` });
+            return;
+          }
+
+          let buffer = '';
+          res.on('data', (chunk: Buffer) => {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop() ?? '';
+
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+              try {
+                onEvent(JSON.parse(data));
+              } catch {
+                // skip malformed SSE lines
+              }
+            }
+          });
+
+          res.on('end', () => resolve());
+          res.on('error', (err) => reject({ kind: 'network', message: String(err) }));
+        },
+      );
+
+      req.on('error', (err) => reject({ kind: 'network', message: String(err) }));
+      req.on('timeout', () => {
+        req.destroy();
+        reject({ kind: 'timeout', message: 'SSE request timeout' });
+      });
+
+      req.write(bodyString);
+      req.end();
+    });
+  }
+
+  /**
+   * Stream pipeline events via /run-sse, trying each base URL candidate.
+   * Calls onEvent for each event as it arrives.
+   */
+  async runPipelineStream(
+    appName: string,
+    userId: string,
+    sessionId: string,
+    message: string,
+    onEvent: (event: unknown) => void,
+  ): Promise<void> {
+    let lastError: any;
+
+    for (const baseUrl of this.baseUrls) {
+      const urlString = this.joinUrl(baseUrl, '/run-sse');
+      try {
+        await this.requestSSE(
+          urlString,
+          { appName, userId, sessionId, newMessage: { role: 'user', parts: [{ text: message }] } },
+          onEvent,
+        );
+        return;
+      } catch (err: any) {
+        lastError = err;
+        if (err?.kind !== 'network' && err?.kind !== 'timeout') break;
+        this.logger.warn(
+          `SSE request failed at ${urlString} (${err.kind}: ${err.message}). Trying next...`,
+        );
+      }
+    }
+
+    if (lastError?.kind === 'timeout') {
+      throw new HttpException(
+        `Agent Service SSE timed out (${Math.round(this.requestTimeoutMs / 60_000)}m limit reached).`,
+        HttpStatus.GATEWAY_TIMEOUT,
+      );
+    }
+
+    throw new HttpException(
+      `Agent Service SSE error: ${lastError?.message ?? 'unknown'}`,
+      HttpStatus.BAD_GATEWAY,
+    );
+  }
+
+  /**
+   * Stream the weekly pipeline events via SSE.
+   */
+  async runWeeklyPipelineStream(batchId: string, onEvent: (event: unknown) => void): Promise<void> {
+    const appName = await this.resolveAppName('weekly', ['agent', 'src']);
+    const userId = 'system';
+    const sessionId = `batch-${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for weekly pipeline...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Streaming weekly pipeline (Riley → Maya → Quill ↔ MayaQA)...`);
+    await this.runPipelineStream(
+      appName,
+      userId,
+      sessionId,
+      'Generate the full weekly batch now: research brief, content plan, complete drafts, and QA review. Hard requirements: return a full weekly draft package (25 posts total: 17 LinkedIn + 5 X + 3 YouTube) and final qa_result containing ALL_PASSED. Do not return progress updates, capability disclaimers, or partial outputs. Continue until outputs are complete and valid.',
+      onEvent,
+    );
+
+    this.logger.log(`[${batchId}] Weekly pipeline stream complete`);
+  }
+
+  /**
+   * Stream the blog pipeline events via SSE.
+   */
+  async runBlogPipelineStream(batchId: string, onEvent: (event: unknown) => void): Promise<void> {
+    const appName = await this.resolveAppName('blog', ['sam-pipeline', 'src']);
+    const userId = 'system';
+    const sessionId = `blog-${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for blog pipeline...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Streaming blog pipeline (Riley → Sam → SamQA)...`);
+    await this.runPipelineStream(
+      appName,
+      userId,
+      sessionId,
+      `Run the full blog pipeline now: pick 2 queued topics, research each, write complete MDX posts, generate hero+OG images, render diagrams, QA validate, and publish drafts.
+
+Run ID for this batch: ${batchId}
+Mandatory tool-call rule: For every tool that accepts runId, pass runId="${batchId}".
+Output path rule: Use outputDir values relative to the run, such as "research/<slug>", "blog/<slug>", or "assets/<slug>" (do not use repo-local absolute paths).
+
+Hard requirements: produce non-empty blog_output content and final blog_qa_result including ALL_PASSED. Do not return progress updates, capability disclaimers, questions, or partial responses. Continue execution until deliverables are complete.`,
+      onEvent,
+    );
+
+    this.logger.log(`[${batchId}] Blog pipeline stream complete`);
+  }
+
+  /**
+   * Stream the daily news scan events via SSE.
+   */
+  async runDailyNewsScanStream(batchId: string, onEvent: (event: unknown) => void): Promise<void> {
+    const appName = await this.resolveAppName('daily-news', ['agent', 'src']);
+    const userId = 'system';
+    const sessionId = `news-${batchId}`;
+
+    this.logger.log(`[${batchId}] Creating session for daily news scan...`);
+    await this.createSession(appName, userId, sessionId);
+
+    this.logger.log(`[${batchId}] Streaming daily news scan...`);
+    await this.runPipelineStream(
+      appName,
+      userId,
+      sessionId,
+      'Generate the daily news brief. Quick scan overnight news, identify time-sensitive items that warrant same-day reaction, note anything worth watching but not urgent, flag creator alerts.',
+      onEvent,
+    );
+
+    this.logger.log(`[${batchId}] Daily news scan stream complete`);
   }
 
   /**

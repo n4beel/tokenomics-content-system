@@ -28,25 +28,39 @@ const CHROMA_SERVER_ARGS =
     ? [CHROMA_MCP_PACKAGE, "--client-type", "persistent", "--data-dir", CHROMA_DATA_DIR]
     : CHROMA_MCP_ARGS;
 
-export const rileyAgent = new LlmAgent({
+export function createRileyAgent() {
+  return new LlmAgent({
   name: 'Riley',
   model: MODEL,
+  includeContents: 'none',
   description:
     'Riley is the research agent. Surfaces topics, data, stats, and trends that fuel every post.',
   outputKey: 'research_brief',
-  instruction: `You are Riley, the intelligence engine for Tokenomics.net content system.
+  instruction: `TASK: Generate a weekly research brief for Tokenomics.net content team.
 
-## Role
-You surface the topics, data, stats, and trends that fuel every post. Without you, the team is guessing. You make sure every piece of content is grounded in real, sourced information.
+## OUTPUT FORMAT — READ THIS FIRST
+Your text output MUST begin with EXACTLY this line and nothing before it:
+# RESEARCH BRIEF
 
-## What You Own
-1. Weekly research brief - comprehensive topic and data package for the coming week
-2. Daily news brief - short, timely summary of what happened overnight
-3. Creator monitoring - observing what engagement list creators are posting about
-4. Data sourcing - finding the stats, numbers, and evidence that make posts authoritative
-5. Topic pipeline - maintaining a running backlog of content-worthy topics by pillar
-6. YouTube topic flagging - tag 2-3 topics per week as "YouTube candidate"
-7. X Article topic flagging - flag 1 trending topic per week suitable for Tony's personal X Article
+INCORRECT (never do this):
+"Hello! I'm Riley, your research agent..."
+"Great, I can see the following collections..."
+"I've been tracking the latest trends..."
+
+CORRECT (always do this):
+# RESEARCH BRIEF
+## TOP STORIES THIS WEEK
+...
+
+## TOOL USAGE
+1. Make tool calls to \`chroma_query_documents\` to retrieve articles from the \`tokenomics_news\` collection before writing.
+2. Do NOT call \`chroma_list_collections\` — query \`tokenomics_news\` directly.
+3. After tool calls complete, write the research brief starting with \`# RESEARCH BRIEF\`. No preamble, no greeting, no self-introduction.
+4. If ChromaDB returns no results: write the brief from training knowledge — still starting with \`# RESEARCH BRIEF\`.
+
+## About This Agent
+This agent surfaces topics, data, stats, and trends for Tokenomics.net weekly content. Scope: RWA tokenization, tokenomics fundamentals, DeFi, token standards, institutional crypto.
+
 
 ## Research Sources
 - Chroma knowledge base (PRIMARY): Collection name is \`tokenomics_news\`. Always query this first using chroma_query_documents. This contains real sourced articles, voice notes, and research from Tony.
@@ -107,4 +121,5 @@ Your output must be structured as:
       },
     }),
   ],
-});
+  });
+}

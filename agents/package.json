@@ -5,12 +5,13 @@
   "type": "module",
   "main": "src/agent.ts",
   "scripts": {
-    "dev": "npm run dev:api",
+    "dev": "npm run dev:sse",
+    "dev:sse": "nodemon --watch src --ext ts,js,mjs,json --signal SIGTERM -x \"node build-sse.mjs && node --env-file=.env dist/sse-server.mjs\"",
     "dev:api": "nodemon --watch src --ext ts,js,mjs,json --signal SIGTERM -x \"npx adk api_server src --host 0.0.0.0 --port ${PORT:-8000}\"",
     "dev:web": "nodemon --watch src --ext ts,js,mjs,json --signal SIGTERM -x \"npx adk web src --host 0.0.0.0 --port ${PORT:-8000}\"",
     "dev:cli": "npx adk run src/agent.ts",
     "start": "npm run start:prod",
-    "start:prod": "npx adk api_server src --host 0.0.0.0 --port ${PORT:-8000}",
+    "start:prod": "node build-sse.mjs && node --env-file-if-exists=.env dist/sse-server.mjs",
     "ingest": "uv run --with chromadb python src/scripts/ingest.py",
     "ingest:dry-run": "uv run --with chromadb python src/scripts/ingest.py --dry-run"
   },

@@ -18,6 +18,9 @@ import {
   WEEKLY_BATCH_QUEUE,
 } from './constants';
 import { CmsPublishService } from './cms-publish.service';
+import { CompletionTrackerService } from './completion-tracker.service';
+import { BatchWebhookService } from './batch-webhook.service';
+import { BatchWebhookController } from './batch-webhook.controller';
 
 @Module({
   imports: [
@@ -38,8 +41,10 @@ import { CmsPublishService } from './cms-publish.service';
     DailyNewsProcessor,
     BatchScheduler,
     CmsPublishService,
+    CompletionTrackerService,
+    BatchWebhookService,
   ],
-  controllers: [BatchController],
+  controllers: [BatchController, BatchWebhookController],
   exports: [BatchService, BatchScheduler],
 })
 export class BatchModule { }

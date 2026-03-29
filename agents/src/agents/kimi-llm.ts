@@ -52,8 +52,8 @@ interface OpenAIResponse {
 // ─── KimiLlm ────────────────────────────────────────────────────────────────
 
 export class KimiLlm extends BaseLlm {
-  /** Matches any model string starting with "kimi/" */
-  static override readonly supportedModels: (string | RegExp)[] = [/^kimi\/.*/];
+  /** Matches any model string starting with "kimi/" or "google/" (both routed via OpenRouter) */
+  static override readonly supportedModels: (string | RegExp)[] = [/^kimi\/.*/, /^google\/.*/];
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
